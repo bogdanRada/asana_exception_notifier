@@ -43,7 +43,7 @@ module ExceptionNotifier
 
     def parse_exception_options(exception, options)
       @params = @default_options.merge(options)
-      env = params[:env]
+      env = @params[:env]
       @params[:exception] = exception
       @params[:body] ||= {}
       @params[:body].merge!(
