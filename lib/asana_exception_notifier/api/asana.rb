@@ -19,7 +19,7 @@ module AsanaExceptionNotifier
         @params = options.stringify_keys
         @exception = exception
         ensure_eventmachine_running do
-          fetch_repo_data
+          create_if_valid
         end
       end
 
@@ -39,8 +39,12 @@ module AsanaExceptionNotifier
       #
       # @param [Lambda] callback The callback that needs to be executed after the information is downloaded
       # @return [void]
-      def fetch_repo_data
-        fetch_info if valid?
+      def create_if_valid
+        if valid?
+          create_asana_task
+        else
+          logger.debug("data not valid!!")
+        end
       end
 
       def em_request_options
@@ -58,14 +62,14 @@ module AsanaExceptionNotifier
           'notes' => 'How are you today?',
           'followers' => [],
           'name' => 'Hello, world!',
-          'workspace' => 9261272620301
+          'workspace' => 498346170860
         }
       end
 
       # This method fetches data from Github api and returns the size in
       #
       # @return [void]
-      def fetch_info
+      def create_asana_task
         fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post') do |http_response|
           logger.debug(http_response)
         end
