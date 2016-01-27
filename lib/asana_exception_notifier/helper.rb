@@ -50,5 +50,9 @@ module AsanaExceptionNotifier
       template = ERB.new(File.read(file_path)).result(namespace.instance_eval { binding })
       template
     end
+
+    def default_template_path
+      File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb')
+    end
   end
 end
