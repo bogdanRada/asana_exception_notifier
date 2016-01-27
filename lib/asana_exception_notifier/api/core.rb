@@ -9,7 +9,7 @@ module AsanaExceptionNotifier
     #   @return [String] THe hostname from where the badges are fetched from
     # @!attribute base_url
     #   @return [String] THe base_url of the API
-    class Core
+    module Core
       include Helper
 
       attr_reader :params

@@ -39,7 +39,7 @@ module Helper
   # @return [void]
   def dispatch_http_response(res, options, &block)
     callback = options.fetch('callback', nil)
-    (res.blank? && callback.present?) ? callback.call(res) : block.call(res)
+    (!res.empty? && !callback.nil?) ? callback.call(res) : block.call(res)
   end
 
 

@@ -1,18 +1,29 @@
 require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/module/delegation'
 
-require 'json'
 require 'em-http-request'
 require 'eventmachine'
 require 'exception_notification'
 
-require 'logger'
+require 'ostruct'
 
 Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }
 
-ExceptionNotifier.add_notifier :asana_exception_notifier,
-->(exception, options) { AsanaExceptionNotifier::API::Asana.new(exception, options) }
+ExceptionNotification.configure do |config|
+
+  config.add_notifier :asana, {
+    'asana_api_key' => ENV['ASANA_API_KEY'],
+    'assignee' => 9261272620298,
+    'assignee_status' => 'bla',
+    'due_on' => nil,
+    'due_at' => nil,
+    'hearted' => true,
+    'projects' => [],
+    'followers' => [],
+    'workspace' => 498346170860,
+    'memberships' => [],
+    'tags' => []
+  }
+
+end
