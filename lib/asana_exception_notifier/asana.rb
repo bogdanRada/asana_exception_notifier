@@ -90,14 +90,14 @@ module ExceptionNotifier
         end
 
         def template_name
-          File.join(File.dirname(__FILE__), 'templates', 'asana_exception_notifier.text.erb')
+          template_path =@default_options.fetch('template_path', nil)
+          template_path.nil? ? File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb') : template_path
         end
 
         def render_note_template
           Tilt.new(template_name).render(self)
         end
 
-  
         def em_request_options
           super.merge(
           head: {
