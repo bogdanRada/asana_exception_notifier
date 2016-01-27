@@ -1,9 +1,9 @@
-# module that is used for formatting numbers using metrics
 module AsanaExceptionNotifier
+  # module that is used for formatting numbers using metrics
   module Helper
-    # function that makes the methods incapsulated as utility functions
+  # function that makes the methods incapsulated as utility functions
 
-    module_function
+  module_function
 
     # def extract_body(env)
     #   if io = env['rack.input']
@@ -13,9 +13,18 @@ module AsanaExceptionNotifier
     # end
 
     def show_hash_content(hash)
-      hash.map do |key , value|
+      hash.map do |key, value|
         value.is_a?(Hash) ? show_hash_content(value) : ["#{key}:", value]
       end.join("\n  ")
+    end
+
+    #  returns the logger used to log messages and errors
+    #
+    # @return [Logger]
+    #
+    # @api public
+    def logger
+      @logger ||= ExceptionNotifier.logger
     end
 
     def ensure_eventmachine_running(&block)
@@ -30,25 +39,10 @@ module AsanaExceptionNotifier
       end
     end
 
-    def run_eventmachine(&block)
+    def run_eventmachine(&_block)
       EM.run do
-        block.call
+        yield
       end
     end
-
-    # Dispatches the response either to the final callback or to the block that will use the response
-    # and then call the callback
-    #
-    # @param [String] res The response string that will be dispatched
-    # @param [Hash] options The callback that is used to dispatch further the response
-    # @param [Proc] block The block that is used for parsing response and then calling the callback
-    # @return [void]
-    def dispatch_http_response(res, options, &block)
-      callback = options.fetch('callback', nil)
-      (!res.empty? && !callback.nil?) ? callback.call(res) : block.call(res)
-    end
-
-
-
   end
 end

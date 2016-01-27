@@ -4,10 +4,10 @@ Gem::Specification.new do |s|
   s.name = 'asana_exception_notifier'
   s.version = AsanaExceptionNotifier.gem_version
   s.platform = Gem::Platform::RUBY
-  s.summary = 'CelluloidPubsub is a simple ruby implementation of publish subscribe design patterns using celluloid actors and websockets, using Celluloid::Reel server'
+  s.summary = ''
   s.email = 'raoul_ice@yahoo.com'
   s.homepage = 'http://github.com/bogdanRada/asana_exception_notifier/'
-  s.description = 'CelluloidPubsub is a simple ruby implementation of publish subscribe design patterns using celluloid actors and websockets, using Reel server for inter-process communication'
+  s.description = ''
   s.authors = ['bogdanRada']
   s.date = Date.today
 

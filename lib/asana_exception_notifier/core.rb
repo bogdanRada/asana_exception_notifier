@@ -81,10 +81,11 @@ module AsanaExceptionNotifier
       # @param [Lambda] callback The callback that will be called if the response is blank
       # @param [Proc] block If the response is not blank, the block will receive the response
       # @return [void]
-      def register_success_callback(http, options, &block)
+      def register_success_callback(http, options)
         http.callback do
           res = callback_before_success(http.response)
-          dispatch_http_response(res, options, &block)
+          callback = options.fetch('callback', nil)
+          block_given? ? yield(res) : callback.call(res)
         end
       end
 

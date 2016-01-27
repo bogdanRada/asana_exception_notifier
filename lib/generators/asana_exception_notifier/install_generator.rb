@@ -1,7 +1,8 @@
 module AsanaExceptionNotifier
   module Generators
+    # module that is used for formatting numbers using metrics
     class InstallGenerator < Rails::Generators::Base
-      desc "Creates a AsanaExceptionNotifier initializer."
+      desc 'Creates a AsanaExceptionNotifier initializer.'
 
       source_root File.expand_path('../templates', __FILE__)
 
