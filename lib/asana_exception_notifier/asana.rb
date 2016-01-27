@@ -18,8 +18,7 @@ module ExceptionNotifier
       parse_options(options)
     end
 
-
-    def call(exception, options={})
+    def call(exception, options = {})
       ensure_eventmachine_running do
         create_asana_task(exception, options)
       end
@@ -39,7 +38,7 @@ module ExceptionNotifier
       !@asana_api_key.nil? && !@workspace.nil?
     end
 
-    private
+  private
 
     def parse_exception_options(exception, options)
       @params = options
@@ -50,14 +49,14 @@ module ExceptionNotifier
 
       @params[:body] ||= {}
       @params[:body][:server] = Socket.gethostname
-      @params[:body][:process] = $$
+      @params[:body][:process] = $PROCESS_ID
       if defined?(Rails) && Rails.respond_to?(:root)
         @params[:body][:rails_root] = Rails.root
       end
       @params[:body][:exception] = {
-        :error_class => exception.class.to_s,
-        :message => exception.message.inspect,
-        :backtrace => exception.backtrace
+        error_class: exception.class.to_s,
+        message: exception.message.inspect,
+        backtrace: exception.backtrace
       }
 
       unless env.nil?
@@ -65,11 +64,11 @@ module ExceptionNotifier
         request = ActionDispatch::Request.new(env)
 
         request_items = {
-          :url => request.original_url,
-          :http_method => request.method,
-          :ip_address => request.remote_ip,
-          :parameters => request.filtered_parameters,
-          :timestamp => Time.current
+          url: request.original_url,
+          http_method: request.method,
+          ip_address: request.remote_ip,
+          parameters: request.filtered_parameters,
+          timestamp: Time.current
         }
 
         @params[:body][:request] = request_items
@@ -92,10 +91,8 @@ module ExceptionNotifier
       @tags = options.fetch('tags', [])
     end
 
-
-
     def template_name
-      template_path =@default_options.fetch('template_path', nil)
+      template_path = @default_options.fetch('template_path', nil)
       template_path.nil? ? File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb') : template_path
     end
 
@@ -128,5 +125,4 @@ module ExceptionNotifier
       end
     end
   end
-
 end

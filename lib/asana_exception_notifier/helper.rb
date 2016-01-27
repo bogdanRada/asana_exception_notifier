@@ -50,6 +50,5 @@ module AsanaExceptionNotifier
       template = ERB.new(File.read(file_path)).result(namespace.instance_eval { binding })
       template
     end
-
   end
 end
