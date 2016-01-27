@@ -19,10 +19,10 @@ module ExceptionNotifier
     # @param [Proc] callback The callback that is executed after the info is fetched from Github API
     # @return [void]
     def call(exception, options={})
-      @params = options.stringify_keys
+      @params = options
       @exception = exception
       ensure_eventmachine_running do
-        create_asana_task if !@exception.nil? && !@exception.empty?
+        create_asana_task if !@exception.nil?
       end
     end
 
@@ -33,7 +33,6 @@ module ExceptionNotifier
       @asana_api_key = options.fetch('asana_api_key', nil)
       @assignee = options.fetch('assignee', nil)
       @assignee_status = options.fetch('assignee_status', nil)
-      @due_on  = options.fetch('due_on', nil)
       @due_at  = options.fetch('due_at', nil)
       @hearted = options.fetch('hearted', nil)
       @projects = options.fetch('projects', [])
@@ -67,10 +66,9 @@ module ExceptionNotifier
 
     def body_object
       {
-        'assignee' => @assignee,
-        'assignee_status' => @assignee_status,
-        'due_on' => @due_on,
-        'due_at' => @due_at,
+        'assignee' => @assignee || 'me',
+        'assignee_status' => @assignee_status || 'inbox',
+        'due_at' => @due_at || Time.now.iso8601,
         'hearted' => @hearted,
         'projects' => @projects,
         'followers' => @followers,

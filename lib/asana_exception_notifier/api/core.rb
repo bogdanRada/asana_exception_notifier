@@ -68,7 +68,6 @@ module AsanaExceptionNotifier
       # @param [Proc] block If the response is not blank, the block will receive the response
       # @return [void]
       def fetch_data(url, options = {}, &block)
-        options = options.stringify_keys
         http = em_request(url, options)
         register_error_callback(http)
         register_success_callback(http, options, &block)
