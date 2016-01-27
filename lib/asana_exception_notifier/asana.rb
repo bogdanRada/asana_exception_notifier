@@ -26,6 +26,21 @@ module ExceptionNotifier
       end
     end
 
+    def em_request_options
+      super.merge(
+        head: {
+          'Authorization' => "Bearer #{@asana_api_key}"
+        },
+        body: body_object
+      )
+    end
+
+    def active?
+      !@asana_api_key.nil? && !@workspace.nil?
+    end
+
+  private
+
     def parse_exception_options
       @params = options
       env = @params[:env]
@@ -75,26 +90,14 @@ module ExceptionNotifier
       @tags = options.fetch('tags', [])
     end
 
-    def active?
-      !@asana_api_key.nil? && !@workspace.nil?
-    end
-
     def template_name
+      parse_exception_options
       template_path = @default_options.fetch('template_path', nil)
       template_path.nil? ? File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb') : template_path
     end
 
     def render_note_template
       Tilt.new(template_name).render(self)
-    end
-
-    def em_request_options
-      super.merge(
-        head: {
-          'Authorization' => "Bearer #{@asana_api_key}"
-        },
-        body: body_object
-      )
     end
 
     def body_object
