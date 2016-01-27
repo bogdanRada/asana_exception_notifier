@@ -1,4 +1,4 @@
-require_relative './core'
+require_relative '../asana_exception_notifier/core'
 # class used for connecting to github api and retrieves information about repository
 #
 # @!attribute callback
