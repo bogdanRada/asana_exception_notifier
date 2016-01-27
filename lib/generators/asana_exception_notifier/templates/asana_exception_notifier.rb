@@ -11,5 +11,6 @@ ExceptionNotification.configure do |config|
                                   'followers' => [],
                                   'workspace' => 498_346_170_860,
                                   'memberships' => [],
-                                  'tags' => []
+                                  'tags' => [],
+                                  'name' => nil
 end

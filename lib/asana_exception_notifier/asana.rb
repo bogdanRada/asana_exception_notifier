@@ -112,7 +112,7 @@ module ExceptionNotifier
         'memberships' => @memberships,
         'tags' => @tags,
         'notes' => render_note_template(body),
-        'name' => "[AsanaExceptionNotifier] #{@exception.class.inspect}"
+        'name' => @default_options.fetch('name',nil) || '[AsanaExceptionNotifier]'
       }
     end
 
