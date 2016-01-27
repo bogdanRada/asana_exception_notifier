@@ -1,13 +1,13 @@
-A <%= @exception.class.to_s %> occured: <%= @exception.message.to_s %>
+A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 
 
-<% if @exception.respond_to?(:backtrace)  %>
-<% if !@exception.backtrace.nil?  %>
+<% if exception.respond_to?(:backtrace)  %>
+<% if !exception.backtrace.nil?  %>
   ===================================================================
   Backtrace:
   ===================================================================
 
-  <%= @exception.backtrace.join("\n  ") %>
+  <%= exception.backtrace.join("\n  ") %>
 <% end %>
 <% end %>
   ===================================================================
@@ -17,4 +17,4 @@ Rack Environment:
 PID:                     <%= $$ %> <br/>
 PWD:                     <%= Dir.getwd %><br/>
 
-<%= show_hash_content(@params) %>
+<%= params %>

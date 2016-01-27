@@ -18,20 +18,20 @@ module ExceptionNotifier
       parse_options(options)
     end
 
-    def call(exception, options = {})
-      @params = options
-      @exception = exception
+
+    def call(exception, options={})
       ensure_eventmachine_running do
-        create_asana_task
+        create_asana_task(exception, options)
       end
     end
 
-    def em_request_options
+    def em_request_options(options)
+      body = parse_exception_options(options['exception'], options['params'])
       super.merge(
         head: {
           'Authorization' => "Bearer #{@asana_api_key}"
         },
-        body: body_object
+        body: body_object(body)
       )
     end
 
@@ -39,24 +39,25 @@ module ExceptionNotifier
       !@asana_api_key.nil? && !@workspace.nil?
     end
 
-  private
+    private
 
-    def parse_exception_options
+    def parse_exception_options(exception, options)
       @params = options
+      @params[:exception] = exception
       env = @params[:env]
 
-      @params = @params.reverse_merge(@default_options)
+      @params = @default_options.merge(@params)
 
       @params[:body] ||= {}
       @params[:body][:server] = Socket.gethostname
-      @params[:body][:process] = $PROCESS_ID
+      @params[:body][:process] = $$
       if defined?(Rails) && Rails.respond_to?(:root)
         @params[:body][:rails_root] = Rails.root
       end
       @params[:body][:exception] = {
-        error_class: @exception.class.to_s,
-        message: @exception.message.inspect,
-        backtrace: @exception.backtrace
+        :error_class => exception.class.to_s,
+        :message => exception.message.inspect,
+        :backtrace => exception.backtrace
       }
 
       unless env.nil?
@@ -64,17 +65,18 @@ module ExceptionNotifier
         request = ActionDispatch::Request.new(env)
 
         request_items = {
-          url: request.original_url,
-          http_method: request.method,
-          ip_address: request.remote_ip,
-          parameters: request.filtered_parameters,
-          timestamp: Time.current
+          :url => request.original_url,
+          :http_method => request.method,
+          :ip_address => request.remote_ip,
+          :parameters => request.filtered_parameters,
+          :timestamp => Time.current
         }
 
         @params[:body][:request] = request_items
         @params[:body][:session] = request.session
         @params[:body][:environment] = request.filtered_env
       end
+      @params
     end
 
     def parse_options(options)
@@ -90,17 +92,18 @@ module ExceptionNotifier
       @tags = options.fetch('tags', [])
     end
 
+
+
     def template_name
-      parse_exception_options
-      template_path = @default_options.fetch('template_path', nil)
+      template_path =@default_options.fetch('template_path', nil)
       template_path.nil? ? File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb') : template_path
     end
 
-    def render_note_template
-      Tilt.new(template_name).render(self)
+    def render_note_template(body)
+      erb_template(template_name, body)
     end
 
-    def body_object
+    def body_object(body)
       {
         'assignee' => @assignee || 'me',
         'assignee_status' => @assignee_status || 'inbox',
@@ -111,7 +114,7 @@ module ExceptionNotifier
         'workspace' => @workspace,
         'memberships' => @memberships,
         'tags' => @tags,
-        'notes' => render_note_template,
+        'notes' => render_note_template(body),
         'name' => "[AsanaExceptionNotifier] #{@exception.class.inspect}"
       }
     end
@@ -119,10 +122,11 @@ module ExceptionNotifier
     # This method fetches data from Github api and returns the size in
     #
     # @return [void]
-    def create_asana_task
-      fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post') do |http_response|
+    def create_asana_task(exception, options)
+      fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'exception' => exception, 'params' => options) do |http_response|
         logger.debug(http_response)
       end
     end
   end
+
 end

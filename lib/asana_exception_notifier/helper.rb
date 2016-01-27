@@ -44,5 +44,12 @@ module AsanaExceptionNotifier
         yield
       end
     end
+
+    def erb_template(file_path, options)
+      namespace = OpenStruct.new(options)
+      template = ERB.new(File.read(file_path)).result(namespace.instance_eval { binding })
+      template
+    end
+
   end
 end
