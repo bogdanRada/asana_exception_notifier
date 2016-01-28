@@ -5,12 +5,34 @@ module AsanaExceptionNotifier
 
   module_function
 
-    # def extract_body(env)
-    #   if io = env['rack.input']
-    #     io.rewind if io.respond_to?(:rewind)
-    #     io.read
-    #   end
-    # end
+    def extract_body(env)
+      return if env.blank? || !env.is_a?(Hash)
+      io = env['rack.input']
+      io.rewind if io.respond_to?(:rewind)
+      io.read
+    end
+
+    def exception_data(exception)
+      {
+        'error_class' => exception.class.to_s,
+        'message' =>  exception.message.inspect,
+        'backtrace' => exception.backtrace
+      }
+    end
+
+    def setup_env_params(env)
+      return if env.blank? || !defined?(ActionDispatch::Request)
+      request = ActionDispatch::Request.new(env)
+      {
+        'url' => request.original_url,
+        'http_method' => request.method,
+        'ip_address' => request.remote_ip,
+        'parameters' => request.filtered_parameters,
+        'timestamp' => Time.current,
+        'session' => request.session,
+        'environment' => request.filtered_env
+      }
+    end
 
     def show_hash_content(hash)
       hash.map do |key, value|
@@ -34,8 +56,8 @@ module AsanaExceptionNotifier
 
     def register_em_error_handler
       EM.error_handler do |error|
-        logger.debug "Error during event loop : #{error.inspect}"
-        logger.debug error.backtrace
+        logger.debug "AsanaExceptionNotifier: Error during event loop : #{error.inspect}"
+        logger.debug "AsanaExceptionNotifier:#{error.backtrace.join("\n")}"
       end
     end
 
@@ -45,14 +67,8 @@ module AsanaExceptionNotifier
       end
     end
 
-    def erb_template(file_path, options)
-      namespace = OpenStruct.new(options)
-      template = ERB.new(File.read(file_path)).result(namespace.instance_eval { binding })
-      template
-    end
-
     def default_template_path
-      File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb')
+      File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.html.erb')
     end
   end
 end
