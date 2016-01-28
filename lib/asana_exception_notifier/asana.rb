@@ -10,7 +10,7 @@ module ExceptionNotifier
     include AsanaExceptionNotifier::API::Core
     include AsanaExceptionNotifier::Helper
     # the base url to which the API will connect for fetching information about gems
-    attr_reader :params, :exception
+    attr_reader :initial_options, :exception
 
     def initialize(options)
       super
@@ -23,7 +23,7 @@ module ExceptionNotifier
       ensure_eventmachine_running do
         template_params = parse_exception_options(exception, options)
         body_options = body_object(template_params)
-        create_asana_task(body_options)
+        create_asana_task(body_options) if active?
       end
     end
 
@@ -37,7 +37,7 @@ module ExceptionNotifier
     end
 
     def active?
-      @asana_api_key.present? && @workspace.present?
+      @default_options.fetch('asana_api_key', nil).present? && @default_options.fetch('workspace', nil).present?
     end
 
   private
