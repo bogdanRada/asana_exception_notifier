@@ -20,5 +20,6 @@ require 'ostruct'
 require 'thread'
 require 'json'
 require 'tempfile'
+require 'English'
 
 Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }
