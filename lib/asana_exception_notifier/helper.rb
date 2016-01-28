@@ -46,7 +46,7 @@ module AsanaExceptionNotifier
     #
     # @api public
     def logger
-      @logger ||= ExceptionNotifier.logger
+      @logger ||= defined?(Rails) ? Rails.logger : ExceptionNotifier.logger
     end
 
     def ensure_eventmachine_running(&block)

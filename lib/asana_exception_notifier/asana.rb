@@ -21,17 +21,18 @@ module ExceptionNotifier
 
     def call(exception, options = {})
       ensure_eventmachine_running do
-        create_asana_task(exception, options)
+        template_params = parse_exception_options(exception, options)
+        body_options = body_object(template_params)
+        create_asana_task(body_options)
       end
     end
 
     def em_request_options(options)
-      body = parse_exception_options(options['exception'], options['params'])
       super.merge(
         head: {
           'Authorization' => "Bearer #{@default_options.fetch('asana_api_key', nil)}"
         },
-        body: body_object(body)
+        body: options.fetch('body', {})
       )
     end
 
@@ -77,9 +78,9 @@ module ExceptionNotifier
       template_path.blank? ? default_template_path : template_path
     end
 
-    def render_note_template(body)
-      body.stringify_keys!
-      Tilt.new(template_path).render(self, body)
+    def render_note_template(template_params)
+      template_params.stringify_keys!
+      Tilt.new(template_path).render(self, template_params)
     end
 
     def body_object(body)
@@ -91,8 +92,8 @@ module ExceptionNotifier
     # This method fetches data from Github api and returns the size in
     #
     # @return [void]
-    def create_asana_task(exception, options)
-      fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'exception' => exception, 'params' => options) do |http_response|
+    def create_asana_task(body_options)
+      fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'body' => body_options) do |http_response|
         logger.debug(http_response)
       end
     end
