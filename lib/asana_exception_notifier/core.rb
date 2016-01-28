@@ -22,9 +22,7 @@ module AsanaExceptionNotifier
           connect_timeout: 5,        # default connection setup timeout
           inactivity_timeout: 10,    # default connection inactivity (post-setup) timeout
           ssl: {
-            cipher_list: 'ALL',
-            verify_peer: false,
-            ssl_version: 'TLSv1'
+            verify_peer: false
           },
           head: {
             'ACCEPT' => '*/*',
@@ -36,7 +34,7 @@ module AsanaExceptionNotifier
       # Returns the request options used for connecting to API's
       #
       # @return [Hash] Returns the request options used for connecting to API's
-      def em_request_options(_options)
+      def em_request_options(_options = {})
         {
           redirects: 5,              # follow 3XX redirects up to depth 5
           keepalive: true,           # enable keep-alive (don't send Connection:close header)

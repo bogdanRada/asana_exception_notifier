@@ -1,5 +1,5 @@
-require_relative '../asana_exception_notifier/helper'
-require_relative '../asana_exception_notifier/core'
+require_relative './helper'
+require_relative './core'
 # class used for connecting to github api and retrieves information about repository
 #
 # @!attribute callback
@@ -22,18 +22,19 @@ module ExceptionNotifier
     def call(exception, options = {})
       ensure_eventmachine_running do
         template_params = parse_exception_options(exception, options)
-        body_options = body_object(template_params)
+        body_options = build_request_options(template_params)
         create_asana_task(body_options) if active?
       end
     end
 
     def em_request_options(options)
-      super.merge(
+      params = {
         head: {
           'Authorization' => "Bearer #{@default_options.fetch('asana_api_key', nil)}"
-        },
-        body: options.fetch('body', {})
-      )
+        }
+      }.merge(options['em_request'])
+      # raise params.inspect
+      super.merge(params)
     end
 
     def active?
@@ -43,18 +44,17 @@ module ExceptionNotifier
   private
 
     def parse_exception_options(exception, options)
-      params = @default_options.merge(options)
-      env = params['env']
+      env = options['env']
       {
         'env' => env,
         'exception' => exception,
         'server' =>  Socket.gethostname,
         'rails_root' => defined?(Rails) ? Rails.root : nil,
-        'process' => $PROCESS_ID,
-        'data' => (env.blank? ? {} : env['exception_notifier.exception_data']).merge(params['data'] || {}),
+        'process' => $$,
+        'data' => (env.blank? ? {} : env['exception_notifier.exception_data']).merge(options['data'] || {}),
         'fault_data' => exception_data(exception),
         'request' => setup_env_params(env)
-      }.merge(params)
+      }.merge(options).reject { |_key, value| value.blank? }
     end
 
     def parse_options(options)
@@ -69,23 +69,26 @@ module ExceptionNotifier
         'workspace' => nil,
         'memberships' => [],
         'tags' => [],
-        'name' => '[AsanaExceptionNotifier]'
+        'template_path' => default_template_path
       }.merge(options)
     end
 
     def template_path
       template_path = @default_options.fetch('template_path', nil)
-      template_path.blank? ? default_template_path : template_path
+      template_path.blank? ? default_template_path : template_path_exist(File.expand_path(template_path))
     end
 
     def render_note_template(template_params)
-      template_params.stringify_keys!
-      Tilt.new(template_path).render(self, template_params)
+      rows = mount_table_for_hash(template_params.except('exception', 'fault_data'))
+      template_params[:table_data] = rows
+      template_params[:format_type] = "%-#{max_length(rows, 0).size}s: %-#{max_length(rows, 1).size}s\r\n"
+      Tilt.new(template_path).render(self, template_params.stringify_keys)
     end
 
-    def body_object(body)
+    def build_request_options(template_params)
       @default_options.merge(
-        'notes' => render_note_template(body)
+        'name' => "[AsanaExceptionNotifier] #{template_params['fault_data']['error_class']}",
+        'notes' => render_note_template(template_params)
       )
     end
 
@@ -93,7 +96,7 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(body_options)
-      fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'body' => body_options) do |http_response|
+      fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'em_request' => { body: body_options }) do |http_response|
         logger.debug(http_response)
       end
     end

@@ -18,5 +18,7 @@ require 'logger'
 require 'fileutils'
 require 'ostruct'
 require 'thread'
+require 'cgi'
+require 'json'
 
 Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }

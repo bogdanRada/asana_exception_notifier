@@ -24,7 +24,9 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 Rack Environment:
 ===================================================================
 
-PID:                     <%= $$ %> <br/>
-PWD:                     <%= Dir.getwd %><br/>
+PID:                     <%= $$ %>
+PWD:                     <%= Dir.getwd %>
 
-<%= params %>
+<% table_data.each do |key, value| %>
+<%= format_type % [key, value] %>
+<% end %>

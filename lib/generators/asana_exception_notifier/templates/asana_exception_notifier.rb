@@ -12,5 +12,6 @@ ExceptionNotification.configure do |config|
                                   'workspace' => 498_346_170_860,
                                   'memberships' => [],
                                   'tags' => [],
-                                  'name' => nil
+                                  'name' => nil,
+                                  'template_path' => nil
 end
