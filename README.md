@@ -35,27 +35,79 @@ Add the following to your Gemfile :
   gem "asana_exception_notifier"
 ```
 
-#### Options
+#### Options: For more options to this check [here](https://asana.com/developers/api-reference/tasks)
 
-##### subdomain
-
-*String, required*
-
-Your subdomain at Campfire.
-
-##### room_name
+##### asana_api_key
 
 *String, required*
 
-The Campfire room where the notifications must be published to.
+Your Asana API key,
 
-##### token
+##### assignee
 
-*String, required*
+*String, optional*
 
-The API token to allow access to your Campfire account.
+Who will be assigned by default to the task that is going to be created. (Default: 'me')
 
-For more options to set Campfire, like *ssl*, check [here](https://github.com/collectiveidea/tinder/blob/master/lib/tinder/campfire.rb#L17).
+##### assignee_status
+
+*String, optional*
+
+The status of the task (Default: 'today').
+
+##### due_at
+
+*String, optional*
+
+The due date of the task (Default: Time.now.iso8601).
+
+##### hearted
+
+*String, optional*
+
+The due date of the task (Default: false).
+
+##### projects
+
+*Array, optional*
+
+The due date of the task (Default: false).
+
+##### followers
+
+*Array, optional*
+
+The due date of the task (Default: false).
+
+##### workspace
+
+*Integer, required*
+
+The due date of the task (Default: false).
+
+##### memberships
+
+*Array, optional*
+
+The due date of the task (Default: false).
+
+##### tags
+
+*Array, optional*
+
+The due date of the task (Default: false).
+
+##### naem
+
+*String, optional*
+
+The due date of the task (Default: false).
+
+##### template_path
+
+*Array, optional*
+
+The due date of the task (Default: false).
 
 ### Rails
 
@@ -78,8 +130,6 @@ Rails.application.config.middleware.use ExceptionNotification::Rack
 ### Rack/Sinatra
 
 In order to use ExceptionNotification with Sinatra, please take a look in the [example application](https://github.com/smartinez87/exception_notification/tree/master/examples/sinatra).
-
-But, you also can easily implement your own [custom notifier](#custom-notifier).
 
 Background Notifications
 ------------------------

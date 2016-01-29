@@ -9,7 +9,7 @@ ExceptionNotification.configure do |config|
                                   hearted: false,
                                   projects: [],
                                   followers: [],
-                                  workspace: 498_346_170_860,
+                                  workspace: ENV['ASANA_WORKSPACE_ID'],
                                   memberships: [],
                                   tags: [],
                                   name: nil,
