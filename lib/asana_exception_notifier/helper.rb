@@ -9,6 +9,7 @@ module AsanaExceptionNotifier
     def permitted_options
       {
         asana_api_key:  nil,
+        workspace: nil,
         assignee:  nil,
         assignee_status: nil,
         due_at: nil,
@@ -17,9 +18,10 @@ module AsanaExceptionNotifier
         hearts: [],
         projects: [],
         followers: [],
-        workspace: nil,
         memberships: [],
         tags: [],
+        notes: '',
+        name: '',
         template_path: default_template_path
       }
     end

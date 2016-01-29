@@ -63,8 +63,7 @@ module ExceptionNotifier
 
     def build_request_options(template_params)
       @default_options.except(:asana_api_key, :template_path).merge(
-        name: "[AsanaExceptionNotifier] #{template_params[:fault_data][:error_class]}",
-        notes: render_note_template(template_params),
+        name: @default_options.fetch(:name, nil) || "[AsanaExceptionNotifier] #{template_params[:fault_data][:error_class]}",
         workspace: @default_options.fetch(:workspace, nil).to_i
       ).symbolize_keys!
     end

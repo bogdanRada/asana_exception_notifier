@@ -43,6 +43,14 @@ Add the following to your Gemfile :
 
 Your Personal Access Token from Asana. You can get it from [here](https://app.asana.com/-/account_api). Please make sure you keep the token secret, and don't commit it in your repository. I suggest to put it into an environment variable and use it from that variable.
 
+##### workspace
+
+*Integer, required*
+
+The workspace ID where the task will be created.
+
+**If you don't supply the workspace or the asana_api_key flags , the notifier will not run!!!**
+
 ##### assignee
 
 *String, optional*
@@ -53,67 +61,73 @@ Who will be assigned by default to the task that is going to be created. (Defaul
 
 *String, optional*
 
-The status of the task (Default: 'today'). The task will be marked for today. Can be disabled by setting it to NIL value.
+Scheduling status of this task for the user it is assigned to. This field can only be set if the assignee is non-null. (Default: 'today'). Can be disabled by setting it to NIL value.
 
 ##### due_at
 
 *Time, optional*
 
-The due date of the task (Default: Time.now.iso8601). This will show when the exception actually happenned by setting the due date. But you can disable this if you send NIL value.
+Date and time on which this task is due, or null if the task has no due time. This takes a UTC timestamp and should not be used together with due_on. Default ( Time.now.iso8601)
 
 ##### due_on
 
 *Time, optional*
 
-The due date of the task (Default: ni). This will show when the exception actually happenned by setting the due date. But you can disable this if you send NIL value.
+Date on which this task is due, or null if the task has no due date. This takes a date with YYYY-MM-DD format and should not be used together with due_at
 
 ##### hearted
 
 *Boolean, optional*
 
-This flag is used to heart the task created or not (Default: false).
+True if the task is hearted by the authorized user, false if not (Default: false).
+
+##### hearts
+
+*Array, optional*
+
+Array of users who will heart the task after creation. (Default: []).
 
 ##### projects
 
 *Array, optional*
 
-The due date of the task (Default: false).
+Array of projects this task is associated with. At task creation time, this array can be used to add the task to many projects at once.(Default: []).
 
 ##### followers
 
 *Array, optional*
 
-The due date of the task (Default: false).
-
-##### workspace
-
-*Integer, required*
-
-The due date of the task (Default: false).
+Array of users following this task. (Default: []).
 
 ##### memberships
 
 *Array, optional*
 
-The due date of the task (Default: false).
+Array of projects this task is associated with and the section it is in. At task creation time, this array can be used to add the task to specific sections.Note that over time, more types of memberships may be added to this property.(Default: []).
 
 ##### tags
 
 *Array, optional*
 
-The due date of the task (Default: false).
+Array of tags associated with this task. This property may be specified on creation using just an array of existing tag IDs. (Default: false).
 
-##### naem
+##### name
 
 *String, optional*
 
-The due date of the task (Default: false).
+Name of the task. This is generally a short sentence fragment that fits on a line in the UI for maximum readability. However, it can be longer. (Default: "[AsanaExceptionNotifier] %Exception Class Name%").
+
+##### notes
+
+*String, optional*
+
+More detailed, free-form textual information associated with the task. (Default: '')
 
 ##### template_path
 
 *Array, optional*
 
-The due date of the task (Default: false).
+This can be used to override the default template when rendering the exception details with customized template.
 
 ### Rails
 
