@@ -1,6 +1,4 @@
 A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
-
-
 <% if body = extract_body(@env) %>
 
   ===================================================================
@@ -9,8 +7,6 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 
   <%= body.gsub(/^/, '  ') %>
 <% end %>
-
-
 <% if exception.respond_to?(:backtrace)  %>
 <% if exception.backtrace.present?  %>
   ===================================================================
@@ -19,7 +15,6 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 
   <%= exception.backtrace.join("\n  ") %>
 <% end %>
-
 <% if exception.cause.present?  %>
   ===================================================================
   Cause:
@@ -34,7 +29,6 @@ Rack Environment:
 
 PID:                     <%= $$ %>
 PWD:                     <%= Dir.getwd %>
-
 <% format_type = "%-#{max_length(table_data, 0).size}s: %-#{max_length(table_data, 1).size}s\r\n" %>
 <% table_data.each do |key, value| %>
 <%= format_type % [key, value] %>
