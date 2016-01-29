@@ -6,6 +6,24 @@ module AsanaExceptionNotifier
 
   module_function
 
+    def permitted_options
+      {
+        asana_api_key:  nil,
+        assignee:  nil,
+        assignee_status: nil,
+        due_at: nil,
+        due_on: nil,
+        hearted: false,
+        hearts: [],
+        projects: [],
+        followers: [],
+        workspace: nil,
+        memberships: [],
+        tags: [],
+        template_path: default_template_path
+      }
+    end
+
     def extract_body(env)
       return if env.blank? || !env.is_a?(Hash)
       io = env['rack.input']

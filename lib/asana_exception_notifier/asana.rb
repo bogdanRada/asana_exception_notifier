@@ -45,19 +45,8 @@ module ExceptionNotifier
   private
 
     def parse_options(options)
-      @default_options = {
-        asana_api_key:  nil,
-        assignee:  nil,
-        assignee_status: nil,
-        due_at: nil,
-        hearted: false,
-        projects: [],
-        followers: [],
-        workspace: nil,
-        memberships: [],
-        tags: [],
-        template_path: default_template_path
-      }.merge(options.symbolize_keys!)
+      options = options.symbolize_keys.reject { |key, _value| !permitted_options.key?(key) }
+      @default_options = permitted_options.merge(options).reject { |_key, value| value.blank? }
     end
 
     def template_path
@@ -77,7 +66,7 @@ module ExceptionNotifier
         name: "[AsanaExceptionNotifier] #{template_params[:fault_data][:error_class]}",
         notes: render_note_template(template_params),
         workspace: @default_options.fetch(:workspace, nil).to_i
-      ).reject { |_key, value| value.blank? }.symbolize_keys!
+      ).symbolize_keys!
     end
 
     def get_file_upload_details(template_params)

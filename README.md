@@ -47,25 +47,31 @@ Your Personal Access Token from Asana. You can get it from [here](https://app.as
 
 *String, optional*
 
-Who will be assigned by default to the task that is going to be created. (Default: 'me')
+Who will be assigned by default to the task that is going to be created. (Default: 'me'). Can be disabled by setting it to NIL value
 
 ##### assignee_status
 
 *String, optional*
 
-The status of the task (Default: 'today'). The task will be marked for today, because the exception happened today.
+The status of the task (Default: 'today'). The task will be marked for today. Can be disabled by setting it to NIL value.
 
 ##### due_at
 
-*String, optional*
+*Time, optional*
 
-The due date of the task (Default: Time.now.iso8601). This will show when the exception actually happenned by setting the due date. But you can disable this if you send NULL value.
+The due date of the task (Default: Time.now.iso8601). This will show when the exception actually happenned by setting the due date. But you can disable this if you send NIL value.
+
+##### due_on
+
+*Time, optional*
+
+The due date of the task (Default: ni). This will show when the exception actually happenned by setting the due date. But you can disable this if you send NIL value.
 
 ##### hearted
 
-*String, optional*
+*Boolean, optional*
 
-The due date of the task (Default: false).
+This flag is used to heart the task created or not (Default: false).
 
 ##### projects
 
