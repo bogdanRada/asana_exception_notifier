@@ -107,7 +107,7 @@ module AsanaExceptionNotifier
       {
         extension: extension,
         filename: File.basename(pathname, extension),
-        path: path
+        file_path: path
       }
     end
 

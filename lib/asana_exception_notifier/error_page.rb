@@ -15,14 +15,15 @@ module AsanaExceptionNotifier
       @request = @env.present? && defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : nil
       @tempfile = Tempfile.new(SecureRandom.uuid, encoding: 'utf-8')
       @template_params = parse_exception_options
+      @boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
       @content = render
     end
 
     def setup_template_details
       template_extension = @template_path.scan(/\.(\w+)\.?(.*)?/)[0][0]
       get_extension_and_name_from_file(@template_path).merge(
-        template_extension: template_extension,
-        mime: Rack::Mime::MIME_TYPES[".#{template_extension}"]
+      template_extension: template_extension,
+      mime: Rack::Mime::MIME_TYPES[".#{template_extension}"]
       )
     end
 
@@ -73,25 +74,27 @@ module AsanaExceptionNotifier
       @tempfile.close
     end
 
-    def multipart_file_upload_details
+    def create_upload_file_part
       create_tempfile
-      file_part = Part.new(name: 'file',
-                           body: @content,
-                           filename: "#{SecureRandom.uuid}.#{@template_details[:template_extension]}",
-                           content_type: @template_details[:mime]
-                          )
-      boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
-      body = MultipartBody.new([file_part], boundary)
-      file_upload_request_options(boundary, body)
+      Part.new(name: 'file',
+        body: @content,
+        filename: "#{tempfile_details(@tempfile)[:filename]}.#{@template_details[:template_extension]}",
+        content_type: @template_details[:mime]
+      )
     end
 
-    def file_upload_request_options(boundary, body)
+    def multipart_file_upload_details
+      body = MultipartBody.new([create_upload_file_part], @boundary)
+      file_upload_request_options(body)
+    end
+
+    def file_upload_request_options(body)
       {
         body: body.to_s,
         head:
         {
-          'Content-Type' => "multipart/form-data;boundary=#{boundary}",
-          'Content-Length' => File.size(tempfile_details(@tempfile)[:path]),
+          'Content-Type' => "multipart/form-data;boundary=#{@boundary}",
+          'Content-Length' => File.size(tempfile_details(@tempfile)[:file_path]),
           'Expect' => '100-continue'
         }
       }
