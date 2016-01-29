@@ -4,10 +4,10 @@ Gem::Specification.new do |s|
   s.name = 'asana_exception_notifier'
   s.version = AsanaExceptionNotifier.gem_version
   s.platform = Gem::Platform::RUBY
-  s.summary = ''
+  s.summary = 'Simple ruby implementation to send notifications to Asana when a exception happens in Rails or Rack-based apps by creating a task and uploading exception details to the task'
   s.email = 'raoul_ice@yahoo.com'
   s.homepage = 'http://github.com/bogdanRada/asana_exception_notifier/'
-  s.description = ''
+  s.description = 'Simple ruby implementation to send notifications to Asana when a exception happens in Rails or Rack-based apps by creating a task and uploading exception details to the task'
   s.authors = ['bogdanRada']
   s.date = Date.today
 
@@ -16,12 +16,13 @@ Gem::Specification.new do |s|
   s.test_files = s.files.grep(/^(spec)/)
   s.require_paths = ['lib']
 
+  s.add_runtime_dependency 'activesupport', '>= 4.0', '< 5'
   s.add_runtime_dependency 'em-http-request', '~> 1.1', '>= 1.1.2'
   s.add_runtime_dependency 'eventmachine', '~> 1.0', '>= 1.0.7'
   s.add_runtime_dependency 'exception_notification', '~> 4.1', '>= 4.1.4'
-  s.add_runtime_dependency 'activesupport', '>= 4.0', '< 5'
+  s.add_runtime_dependency 'multipart_body', '~> 0.2', '>= 0.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
-  s.add_runtime_dependency 'multipart_body'
+
 
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
   s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'

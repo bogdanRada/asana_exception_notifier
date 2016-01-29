@@ -6,15 +6,25 @@ asana_exception_notifier
 Description
 -----------
 
+Simple ruby implementation to send notifications to Asana when a exception happens in Rails or Rack-based apps by creating a task and uploading exception details to the task
+
+The gem provides a notifier for sending notifications to Asana when errors occur in a Rack/Rails application [courtesy of exception_notifications gem](https://github.com/smartinez87/exception_notifications). Check out that gem for more details on setting up the rack middleware with additional options.
+
 Requirements
 ------------
 
-1.	[Ruby 1.9.x or Ruby 2.x.x](http://www.ruby-lang.org)
+-	Ruby 2.0 or greater
+-	Rails 4.0 or greater, Sinatra or another Rack-based application.
 
-Compatibility
--------------
+Dependencies
+------------
 
-Rails >3.0 only. MRI 1.9.x, 2.x
+1.	[ActiveSuport > 4.0](https://rubygems.org/gems/activesupport)
+2.	[em-http-request >= 1.1.0](https://github.com/igrigorik/em-http-request)
+3.	[eventmachine >= 1.0.7](https://github.com/eventmachine/eventmachine)
+4.	[exception_notification >= 4.1.4](https://github.com/smartinez87/exception_notification)
+5.	[multipart_body >= 0.2.1](https://github.com/cloudmailin/multipart_body)
+6.	[tilt >= 1.4](https://github.com/rtomayko/tilt/)
 
 Installation Instructions
 -------------------------
@@ -23,6 +33,91 @@ Add the following to your Gemfile :
 
 ```ruby
   gem "asana_exception_notifier"
+```
+
+#### Options
+
+##### subdomain
+
+*String, required*
+
+Your subdomain at Campfire.
+
+##### room_name
+
+*String, required*
+
+The Campfire room where the notifications must be published to.
+
+##### token
+
+*String, required*
+
+The API token to allow access to your Campfire account.
+
+For more options to set Campfire, like *ssl*, check [here](https://github.com/collectiveidea/tinder/blob/master/lib/tinder/campfire.rb#L17).
+
+### Rails
+
+If you are settting up for the first time this gem, just run the following command from the terminal:
+
+```
+rails g asana_exception_notifier:install
+```
+
+This command generates an initialize file (`config/initializers/asana_exception_notifier.rb`) where you can customize your configurations.
+
+Make sure the gem is not listed solely under the `production` group, since this initializer will be loaded regardless of environment.
+
+AsanaExceptionNotifier is used as a rack middleware, or in the environment you want it to run. In most cases you would want AsanaExceptionNotifier to run on production. Thus, you can make it work by putting the following lines in your `config/environments/production.rb`:
+
+```ruby
+Rails.application.config.middleware.use ExceptionNotification::Rack
+```
+
+### Rack/Sinatra
+
+In order to use ExceptionNotification with Sinatra, please take a look in the [example application](https://github.com/smartinez87/exception_notification/tree/master/examples/sinatra).
+
+But, you also can easily implement your own [custom notifier](#custom-notifier).
+
+Background Notifications
+------------------------
+
+If you want to send notifications from a background process like DelayedJob, you should use the `notify_exception` method like this:
+
+```ruby
+begin
+  some code...
+rescue => exception
+  ExceptionNotifier.notify_exception(exception, notifiers: :asana)
+end
+```
+
+You can include information about the background process that created the error by including a data parameter:
+
+```ruby
+begin
+  some code...
+rescue => exception
+  ExceptionNotifier.notify_exception(exception,
+    :data => {:worker => worker.to_s, :queue => queue, :payload => payload}, notifiers: :asana)
+end
+```
+
+### Manually notify of exception
+
+If your controller action manually handles an error, the notifier will never be run. To manually notify of an error you can do something like the following:
+
+```ruby
+rescue_from Exception, :with => :server_error
+
+def server_error(exception)
+  # Whatever code that handles the exception
+
+  ExceptionNotifier.notify_exception(exception,
+    :env => request.env, :data => {:message => "was doing something wrong"}, notifiers: :asana)
+end
 ```
 
 Testing
