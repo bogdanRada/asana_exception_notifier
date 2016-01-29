@@ -76,7 +76,7 @@ module AsanaExceptionNotifier
     end
 
     def template_dir
-        File.expand_path(File.join(File.dirname(__FILE__), 'note_templates'))
+      File.expand_path(File.join(File.dirname(__FILE__), 'note_templates'))
     end
 
     def default_template_path

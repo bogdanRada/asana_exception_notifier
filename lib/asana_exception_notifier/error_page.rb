@@ -22,8 +22,8 @@ module AsanaExceptionNotifier
     def setup_template_details
       template_extension = @template_path.scan(/\.(\w+)\.?(.*)?/)[0][0]
       get_extension_and_name_from_file(@template_path).merge(
-      template_extension: template_extension,
-      mime: Rack::Mime::MIME_TYPES[".#{template_extension}"]
+        template_extension: template_extension,
+        mime: Rack::Mime::MIME_TYPES[".#{template_extension}"]
       )
     end
 
@@ -76,10 +76,10 @@ module AsanaExceptionNotifier
     def create_upload_file_part
       create_tempfile
       Part.new(name: 'file',
-        body: @content,
-        filename: "#{tempfile_details(@tempfile)[:filename]}.#{@template_details[:template_extension]}",
-        content_type: @template_details[:mime]
-      )
+               body: @content,
+               filename: "#{tempfile_details(@tempfile)[:filename]}.#{@template_details[:template_extension]}",
+               content_type: @template_details[:mime]
+              )
     end
 
     def multipart_file_upload_details

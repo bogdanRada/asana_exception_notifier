@@ -28,7 +28,7 @@ Rack Environment:
 ===================================================================
 
 PID:                     <%= $$ %>
-PWD:                     <%= Dir.getwd %>
+PWD:                     <%= File.expand_path($0) %>
 <% format_type = "%-#{max_length(table_data, 0).size}s: %-#{max_length(table_data, 1).size}s\r\n" %>
 <% table_data.each do |key, value| %>
 <%= format_type % [key, value] %>
