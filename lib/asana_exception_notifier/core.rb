@@ -110,7 +110,7 @@ module AsanaExceptionNotifier
       # @param [Object] error The error that was raised by the HTTP request
       # @return [void]
       def callback_error(error)
-        logger.debug "Error during fetching data  : #{error.inspect}"
+        logger.debug "\n\n[AsanaExceptionNotifier] Error during fetching data  : #{error.inspect}"
       end
     end
   end

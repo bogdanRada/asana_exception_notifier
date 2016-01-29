@@ -13,7 +13,7 @@ module AsanaExceptionNotifier
       @boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
       @template_details = setup_template_details
       @env = @options[:env]
-      @request = @env.present? && defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : nil
+      @request = (defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)) if @env.present?
       @tempfile = Tempfile.new(SecureRandom.uuid, encoding: 'utf-8')
       @template_params = parse_exception_options
       @content = render_template
@@ -32,7 +32,7 @@ module AsanaExceptionNotifier
         server:  Socket.gethostname,
         rails_root: defined?(Rails) ? Rails.root : nil,
         process: $PROCESS_ID,
-        data: (@env.blank? ? {} : @env[:'exception_notifier.exception_data']).merge(@options[:data] || {}),
+        data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         fault_data: exception_data,
         request: setup_env_params
       }.merge(@options).reject { |_key, value| value.blank? }
@@ -56,15 +56,12 @@ module AsanaExceptionNotifier
         parameters: @request.filtered_parameters,
         timestamp: Time.current,
         session: @request.session,
-        environment: @request.filtered_env,
-        status: @request.status,
-        body: @request.body
+        environment: @request.filtered_env
       }
     end
 
     def render_template(template = nil)
       current_template = template || @template_path
-      @template_params[:table_data] = mount_table_for_hash(@template_params.except(:fault_data)) if template.present?
       Tilt.new(current_template).render(self, @template_params.stringify_keys)
     end
 
@@ -76,7 +73,7 @@ module AsanaExceptionNotifier
     def create_upload_file_part
       create_tempfile
       Part.new(name: 'file',
-               body: @content,
+               body: force_utf8_encoding(@content),
                filename: "#{tempfile_details(@tempfile)[:filename]}.#{@template_details[:template_extension]}",
                content_type: @template_details[:mime]
               )

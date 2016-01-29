@@ -1,4 +1,3 @@
-require_relative './request_middleware'
 module AsanaExceptionNotifier
   # module that is used for formatting numbers using metrics
   module Helper
@@ -47,6 +46,13 @@ module AsanaExceptionNotifier
       }.merge(file_details)
     end
 
+    # Returns utf8 encoding of the msg
+    # @param [String] msg
+    # @return [String] ReturnsReturns utf8 encoding of the msg
+    def force_utf8_encoding(msg)
+      msg.respond_to?(:force_encoding) && msg.encoding.name != 'UTF-8' ? msg.force_encoding('UTF-8') : msg
+    end
+
     #  returns the logger used to log messages and errors
     #
     # @return [Logger]
@@ -63,8 +69,8 @@ module AsanaExceptionNotifier
 
     def register_em_error_handler
       EM.error_handler do |error|
-        logger.debug "AsanaExceptionNotifier: Error during event loop : #{error.inspect}"
-        logger.debug "AsanaExceptionNotifier:#{error.backtrace.join("\n")}"
+        logger.debug "\n\n [AsanaExceptionNotifier]: Error during event loop : #{error.inspect}"
+        logger.debug "\n\n [AsanaExceptionNotifier]: #{error.backtrace.join("\n")}"
       end
     end
 

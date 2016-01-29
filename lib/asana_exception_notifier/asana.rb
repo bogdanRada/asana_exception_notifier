@@ -67,15 +67,27 @@ module ExceptionNotifier
     # @return [void]
     def create_asana_task(error_page)
       fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'em_request' => { body: build_request_options(error_page) }) do |http_response|
-        logger.debug(http_response)
         data = JSON.parse(http_response)
-        upload_log_file_to_task(data['data']['id'], error_page) if data['errors'].blank?
+        callback_task_creation(data['errors'], data['data'], action: 'creation') do
+          upload_log_file_to_task(data['data'], error_page)
+        end
       end
     end
 
-    def upload_log_file_to_task(task_id, error_page)
-      fetch_data("https://app.asana.com/api/1.0/tasks/#{task_id}/attachments", 'http_method' => 'post', 'em_request' => error_page.multipart_file_upload_details) do |http_response|
-        logger.debug(http_response)
+    def callback_task_creation(errors, message, options)
+      if errors.present?
+        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{options.fetch(:action, '')} failed with error: #{errors}")
+      else
+        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{options.fetch(:action, '')} successfully with: #{message.fetch('id', message)}")
+        yield if block_given?
+      end
+    end
+
+    def upload_log_file_to_task(message, error_page)
+      return if error_page.blank? || message.blank?
+      fetch_data("https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments", 'http_method' => 'post', 'em_request' => error_page.multipart_file_upload_details) do |http_response|
+        data = JSON.parse(http_response)
+        callback_task_creation(data['errors'], data['data'], action: 'uploaded')
       end
     end
   end

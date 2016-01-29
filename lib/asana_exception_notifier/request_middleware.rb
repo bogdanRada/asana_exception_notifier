@@ -1,6 +1,8 @@
+require_relative './helper'
 module AsanaExceptionNotifier
   # middleware used only in development for testing purposes
   class RequestMiddleware
+    include AsanaExceptionNotifier::Helper
     # Method that is used to debug requests to API's
     # The method receives the request object and prints it content to console
     #
@@ -30,7 +32,7 @@ module AsanaExceptionNotifier
       puts JSON.pretty_generate(
         headers: headers,
         status: headers.status,
-        body: resp.response.to_json
+        body: force_utf8_encoding(resp.response.to_s.inspect)
       )
       resp
     end
