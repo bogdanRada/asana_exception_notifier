@@ -36,8 +36,9 @@ module AsanaExceptionNotifier
     def exception_data(exception)
       {
         error_class: exception.class.to_s,
-        message:  exception.message.inspect,
-        backtrace: exception.backtrace
+        message:  exception.respond_to?(:message) ? exception.message : exception.inspect,
+        backtrace: exception.respond_to?(:backtrace) ? exception.backtrace : '',
+        cause: exception.respond_to?(:cause) ? exception.cause : ''
       }
     end
 
@@ -92,14 +93,15 @@ module AsanaExceptionNotifier
     end
 
     def default_template_path
-      File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.text.erb')
+      File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.html.erb')
     end
 
-    def setup_temfile_upload(content)
-      tempfile = Tempfile.new('asana_exception_notifier')
+    def setup_temfile_upload(content, file_path)
+      file_details = get_extension_and_name_from_file(file_path)
+      tempfile = Tempfile.new([SecureRandom.uuid, file_details[:extension]], encoding: 'utf-8')
       tempfile.write(content)
       tempfile.close
-      tempfile_details(tempfile, content)
+      tempfile_details(tempfile, content, file_details)
     end
 
     def template_path_exist(path)
@@ -124,15 +126,17 @@ module AsanaExceptionNotifier
     end
 
     def get_extension_and_name_from_file(tempfile)
-      pathname = Pathname.new(tempfile.path)
+      path = tempfile.respond_to?(:path) ? tempfile.path : tempfile
+      pathname = Pathname.new(path)
       extension = pathname.extname
       {
         extension: extension,
-        filename: File.basename(pathname, extension)
+        filename: File.basename(pathname, extension),
+        path: path
       }
     end
 
-    def tempfile_details(tempfile, content)
+    def tempfile_details(tempfile, content, template_details)
       file_details = get_extension_and_name_from_file(tempfile)
       details = {
         file: tempfile,
@@ -141,7 +145,7 @@ module AsanaExceptionNotifier
         extension:  file_details[:extension],
         content: content
       }
-      multipart_file_details(details)
+      multipart_file_details(details, template_details)
     end
 
     def file_upload_request_options(boundary, body, file_details)
@@ -179,11 +183,13 @@ module AsanaExceptionNotifier
       options
     end
 
-    def multipart_file_details(file_details)
+    def multipart_file_details(file_details, template_details)
+      extension = template_details[:path].scan(/\.(\w+)\.?(.*)?/)[0][0]
+      mime_type = Rack::Mime::MIME_TYPES[".#{extension}"]
       file_part = Part.new(name: 'file',
                            body: file_details[:content],
-                           filename: file_details[:filename],
-                           content_type: 'text/html'
+                           filename: "#{file_details[:filename]}.#{extension}",
+                           content_type: mime_type
                           )
       boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
       body = MultipartBody.new([file_part], boundary)

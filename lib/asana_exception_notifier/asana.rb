@@ -63,14 +63,14 @@ module ExceptionNotifier
 
     def build_request_options(template_params)
       @default_options.except(:asana_api_key, :template_path).merge(
-        name: @default_options.fetch(:name, nil) || "[AsanaExceptionNotifier] #{template_params[:fault_data][:error_class]}",
+        name: @default_options.fetch(:name, nil) || "[AsanaExceptionNotifier] #{template_params[:fault_data][:message]}",
         workspace: @default_options.fetch(:workspace, nil).to_i
       ).symbolize_keys!
     end
 
     def get_file_upload_details(template_params)
       content = render_note_template(template_params)
-      request_options = setup_temfile_upload(content)
+      request_options = setup_temfile_upload(content, template_path)
       file_details = request_options.delete(:file_details)
       [request_options, file_details]
     end

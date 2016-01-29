@@ -10,6 +10,7 @@ require 'em-http-request'
 require 'eventmachine'
 require 'exception_notification'
 require 'multipart_body'
+require 'rack'
 
 require 'erb'
 require 'tilt'

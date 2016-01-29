@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'exception_notification', '~> 4.1', '>= 4.1.4'
   s.add_runtime_dependency 'multipart_body', '~> 0.2', '>= 0.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
+  s.add_runtime_dependency 'rack', '~> 1.6', '>= 1.6'
 
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
   s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'

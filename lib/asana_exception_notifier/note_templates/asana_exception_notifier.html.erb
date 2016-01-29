@@ -12,12 +12,20 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 
 
 <% if exception.respond_to?(:backtrace)  %>
-<% if !exception.backtrace.nil?  %>
+<% if exception.backtrace.present?  %>
   ===================================================================
   Backtrace:
   ===================================================================
 
   <%= exception.backtrace.join("\n  ") %>
+<% end %>
+
+<% if exception.cause.present?  %>
+  ===================================================================
+  Cause:
+  ===================================================================
+
+  <%= exception.cause.join("\n  ") %>
 <% end %>
 <% end %>
   ===================================================================

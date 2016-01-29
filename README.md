@@ -25,6 +25,7 @@ Dependencies
 4.	[exception_notification >= 4.1.4](https://github.com/smartinez87/exception_notification)
 5.	[multipart_body >= 0.2.1](https://github.com/cloudmailin/multipart_body)
 6.	[tilt >= 1.4](https://github.com/rtomayko/tilt/)
+7.	[rack >= 1.6](http://rack.github.io/)
 
 Installation Instructions
 -------------------------
