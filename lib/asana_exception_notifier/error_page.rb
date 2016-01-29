@@ -35,7 +35,7 @@ module AsanaExceptionNotifier
         data: (@env.blank? ? {} : @env[:'exception_notifier.exception_data']).merge(@options[:data] || {}),
         fault_data: exception_data,
         request: setup_env_params
-      }.merge(options).reject { |_key, value| value.blank? }
+      }.merge(@options).reject { |_key, value| value.blank? }
     end
 
     def exception_data
