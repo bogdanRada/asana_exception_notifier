@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'multipart_body', '~> 0.2', '>= 0.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
 
-
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
   s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'
   s.add_development_dependency 'simplecov-summary', '~> 0.0.4', '>= 0.0.4'

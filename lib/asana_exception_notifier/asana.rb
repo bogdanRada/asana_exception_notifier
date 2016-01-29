@@ -77,7 +77,7 @@ module ExceptionNotifier
         name: "[AsanaExceptionNotifier] #{template_params[:fault_data][:error_class]}",
         notes: render_note_template(template_params),
         workspace: @default_options.fetch(:workspace, nil).to_i
-      ).symbolize_keys!
+      ).reject { |_key, value| value.blank? }.symbolize_keys!
     end
 
     def get_file_upload_details(template_params)

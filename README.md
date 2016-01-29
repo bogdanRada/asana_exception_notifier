@@ -41,7 +41,7 @@ Add the following to your Gemfile :
 
 *String, required*
 
-Your Asana API key,
+Your Personal Access Token from Asana. You can get it from [here](https://app.asana.com/-/account_api). Please make sure you keep the token secret, and don't commit it in your repository. I suggest to put it into an environment variable and use it from that variable.
 
 ##### assignee
 
@@ -53,13 +53,13 @@ Who will be assigned by default to the task that is going to be created. (Defaul
 
 *String, optional*
 
-The status of the task (Default: 'today').
+The status of the task (Default: 'today'). The task will be marked for today, because the exception happened today.
 
 ##### due_at
 
 *String, optional*
 
-The due date of the task (Default: Time.now.iso8601).
+The due date of the task (Default: Time.now.iso8601). This will show when the exception actually happenned by setting the due date. But you can disable this if you send NULL value.
 
 ##### hearted
 
