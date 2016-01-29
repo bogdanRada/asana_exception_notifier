@@ -43,11 +43,10 @@ module AsanaExceptionNotifier
       file_details = get_extension_and_name_from_file(tempfile)
       {
         file: tempfile,
-        path:  tempfile.path,
-        filename: file_details[:filename],
-        extension:  file_details[:extension]
-      }
+        path:  tempfile.path
+      }.merge(file_details)
     end
+
     #  returns the logger used to log messages and errors
     #
     # @return [Logger]

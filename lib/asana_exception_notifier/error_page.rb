@@ -11,11 +11,11 @@ module AsanaExceptionNotifier
       @exception = exception
       @options = options.symbolize_keys
       @template_details = setup_template_details
-      @template_params = parse_exception_options
       @env = @options[:env]
       @request = @env.present? && defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : nil
-      @content = render
       @tempfile = Tempfile.new(SecureRandom.uuid, encoding: 'utf-8')
+      @template_params = parse_exception_options
+      @content = render
     end
 
     def setup_template_details
