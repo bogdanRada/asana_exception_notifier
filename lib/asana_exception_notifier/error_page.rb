@@ -61,7 +61,7 @@ module AsanaExceptionNotifier
     end
 
     def render_template(template = nil)
-      current_template = template || @template_path
+      current_template = template.present? ? template : @template_path
       Tilt.new(current_template).render(self, @template_params.stringify_keys)
     end
 

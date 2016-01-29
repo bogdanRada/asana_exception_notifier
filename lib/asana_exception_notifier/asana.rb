@@ -68,17 +68,19 @@ module ExceptionNotifier
     def create_asana_task(error_page)
       fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'em_request' => { body: build_request_options(error_page) }) do |http_response|
         data = JSON.parse(http_response)
-        callback_task_creation(data['errors'], data['data'], action: 'creation') do
-          upload_log_file_to_task(data['data'], error_page)
+        message = data.fetch('data', {})
+        callback_task_creation(data['errors'], message, action: 'creation') do
+          upload_log_file_to_task(message, error_page)
         end
       end
     end
 
     def callback_task_creation(errors, message, options)
+      action = options.fetch(:action, '')
       if errors.present?
-        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{options.fetch(:action, '')} failed with error: #{errors}")
+        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{action} failed with error: #{errors}")
       else
-        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{options.fetch(:action, '')} successfully with: #{message.fetch('id', message)}")
+        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{action} successfully with: #{message.fetch('id', message)}")
         yield if block_given?
       end
     end
