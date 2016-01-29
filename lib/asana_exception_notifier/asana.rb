@@ -14,7 +14,7 @@ module ExceptionNotifier
 
     def initialize(options)
       super
-      @initial_options = options.stringify_keys
+      @initial_options = options.symbolize_keys
       options = @initial_options.reject { |_key, value| value.blank? }
       parse_options(options)
     end
@@ -27,68 +27,63 @@ module ExceptionNotifier
     end
 
     def em_request_options(options)
+      request = setup_em_options(options).delete(:em_request)
       params = {
-        head: {
-          'Authorization' => "Bearer #{@default_options.fetch('asana_api_key', nil)}"
-        }
-      }.merge(options['em_request'])
+        head: request[:head].merge(
+          'Authorization' => "Bearer #{@default_options.fetch(:asana_api_key, nil)}"
+        ),
+        body: request[:body]
+      }
       # raise params.inspect
       super.merge(params)
     end
 
     def active?
-      @default_options.fetch('asana_api_key', nil).present? && @default_options.fetch('workspace', nil).present?
+      @default_options.fetch(:asana_api_key, nil).present? && @default_options.fetch(:workspace, nil).present?
     end
 
   private
 
-    def parse_exception_options(exception, options)
-      env = options['env']
-      {
-        'env' => env,
-        'exception' => exception,
-        'server' =>  Socket.gethostname,
-        'rails_root' => defined?(Rails) ? Rails.root : nil,
-        'process' => $PROCESS_ID,
-        'data' => (env.blank? ? {} : env['exception_notifier.exception_data']).merge(options['data'] || {}),
-        'fault_data' => exception_data(exception),
-        'request' => setup_env_params(env)
-      }.merge(options).reject { |_key, value| value.blank? }
-    end
-
     def parse_options(options)
       @default_options = {
-        'asana_api_key' => nil,
-        'assignee' => 'me',
-        'assignee_status' => 'inbox',
-        'due_at' => Time.now.iso8601,
-        'hearted' => false,
-        'projects' => [],
-        'followers' => [],
-        'workspace' => nil,
-        'memberships' => [],
-        'tags' => [],
-        'template_path' => default_template_path
-      }.merge(options)
+        asana_api_key:  nil,
+        assignee:  nil,
+        assignee_status: nil,
+        due_at: nil,
+        hearted: false,
+        projects: [],
+        followers: [],
+        workspace: nil,
+        memberships: [],
+        tags: [],
+        template_path: default_template_path
+      }.merge(options.symbolize_keys!)
     end
 
     def template_path
-      template_path = @default_options.fetch('template_path', nil)
+      template_path = @default_options.fetch(:template_path, nil)
       template_path.blank? ? default_template_path : template_path_exist(File.expand_path(template_path))
     end
 
     def render_note_template(template_params)
-      rows = mount_table_for_hash(template_params.except('exception', 'fault_data'))
+      rows = mount_table_for_hash(template_params.except(:exception, :fault_data))
       template_params[:table_data] = rows
       template_params[:format_type] = "%-#{max_length(rows, 0).size}s: %-#{max_length(rows, 1).size}s\r\n"
       Tilt.new(template_path).render(self, template_params.stringify_keys)
     end
 
     def build_request_options(template_params)
-      @default_options.merge(
-        'name' => "[AsanaExceptionNotifier] #{template_params['fault_data']['error_class']}",
-        'notes' => render_note_template(template_params)
-      )
+      @default_options.except(:asana_api_key, :template_path).merge(
+        name: "[AsanaExceptionNotifier] #{template_params[:fault_data][:error_class]}",
+        notes: render_note_template(template_params)
+      ).symbolize_keys!
+    end
+
+    def get_file_upload_details(template_params)
+      content = render_note_template(template_params)
+      request_options = setup_temfile_upload(content)
+      file_details = request_options.delete(:file_details)
+      [request_options, file_details]
     end
 
     # This method fetches data from Github api and returns the size in
@@ -98,16 +93,15 @@ module ExceptionNotifier
       fetch_data('https://app.asana.com/api/1.0/tasks', 'http_method' => 'post', 'em_request' => { body: build_request_options(template_params) }) do |http_response|
         logger.debug(http_response)
         data = JSON.parse(http_response)
-        upload_log_file_to_task(data['data']['id'], template_params) if data['error'].blank?
+        upload_log_file_to_task(data['data']['id'], template_params) if data['errors'].blank?
       end
     end
 
     def upload_log_file_to_task(task_id, template_params)
-      content = render_note_template(template_params)
-      file = setup_temfile_upload(content)
-      fetch_data("https://app.asana.com/api/1.0/tasks/#{task_id}/attachments", 'http_method' => 'post', 'em_request' => { body: { file: file.path } }) do |http_response|
+      request_options, file_details = get_file_upload_details(template_params)
+      fetch_data("https://app.asana.com/api/1.0/tasks/#{task_id}/attachments", 'http_method' => 'post', 'em_request' => request_options) do |http_response|
         logger.debug(http_response)
-        file.unlink
+        file_details[:file].unlink
       end
     end
   end

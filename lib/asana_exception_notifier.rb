@@ -9,6 +9,7 @@ require 'active_support/core_ext/hash/keys'
 require 'em-http-request'
 require 'eventmachine'
 require 'exception_notification'
+require 'multipart_body'
 
 require 'erb'
 require 'tilt'
@@ -21,5 +22,6 @@ require 'thread'
 require 'json'
 require 'tempfile'
 require 'English'
+require 'pathname'
 
 Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }

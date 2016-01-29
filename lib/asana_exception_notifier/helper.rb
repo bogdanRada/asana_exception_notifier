@@ -15,9 +15,9 @@ module AsanaExceptionNotifier
 
     def exception_data(exception)
       {
-        'error_class' => exception.class.to_s,
-        'message' =>  exception.message.inspect,
-        'backtrace' => exception.backtrace
+        error_class: exception.class.to_s,
+        message:  exception.message.inspect,
+        backtrace: exception.backtrace
       }
     end
 
@@ -25,15 +25,15 @@ module AsanaExceptionNotifier
       return {} if env.blank? || !defined?(ActionDispatch::Request)
       request = ActionDispatch::Request.new(env)
       {
-        'url' => request.original_url,
-        'http_method' => request.method,
-        'ip_address' => request.remote_ip,
-        'parameters' => request.filtered_parameters,
-        'timestamp' => Time.current,
-        'session' => request.session,
-        'environment' => request.filtered_env,
-        'status' => request.status,
-        'body' => request.body
+        url: request.original_url,
+        http_method: request.method,
+        ip_address: request.remote_ip,
+        parameters: request.filtered_parameters,
+        timestamp: Time.current,
+        session: request.session,
+        environment: request.filtered_env,
+        status: request.status,
+        body: request.body
       }
     end
 
@@ -79,7 +79,7 @@ module AsanaExceptionNotifier
       tempfile = Tempfile.new('asana_exception_notifier')
       tempfile.write(content)
       tempfile.close
-      tempfile
+      tempfile_details(tempfile, content)
     end
 
     def template_path_exist(path)
@@ -101,6 +101,66 @@ module AsanaExceptionNotifier
         end
       end
       rows
+    end
+
+    def tempfile_details(tempfile, content)
+      pathname = Pathname.new(tempfile.path)
+      extension = pathname.extname
+      filename = File.basename(pathname, extension)
+      details = {
+        file: tempfile,
+        path:  tempfile.path,
+        filename: filename,
+        extension:  extension,
+        content: content
+      }
+      multipart_file_details(details)
+    end
+
+    def file_upload_request_options(boundary, body, file_details)
+      {
+        body: body.to_s,
+        file_details: file_details,
+        head:
+        {
+          'Content-Type' => "multipart/form-data;boundary=#{boundary}",
+          'Content-Length' => File.size(file_details[:path]),
+          'Expect' => '100-continue'
+        }
+      }
+    end
+
+    def parse_exception_options(exception, options)
+      options.symbolize_keys!
+      env = options[:env]
+      {
+        env: env,
+        exception: exception,
+        server:  Socket.gethostname,
+        rails_root: defined?(Rails) ? Rails.root : nil,
+        process: $PROCESS_ID,
+        data: (env.blank? ? {} : env[:'exception_notifier.exception_data']).merge(options[:data] || {}),
+        fault_data: exception_data(exception),
+        request: setup_env_params(env)
+      }.merge(options).reject { |_key, value| value.blank? }
+    end
+
+    def setup_em_options(options)
+      options.symbolize_keys!
+      options[:em_request] ||= {}
+      options[:em_request][:head] ||= {}
+      options
+    end
+
+    def multipart_file_details(file_details)
+      file_part = Part.new(name: 'file',
+                           body: file_details[:content],
+                           filename: file_details[:filename],
+                           content_type: 'text/html'
+                          )
+      boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
+      body = MultipartBody.new([file_part], boundary)
+      file_upload_request_options(boundary, body, file_details)
     end
 
     # Mount table for hash, using name and value and adding a name_value class

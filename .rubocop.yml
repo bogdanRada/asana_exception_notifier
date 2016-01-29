@@ -5,9 +5,12 @@ AllCops:
     - Guardfile
     - vendor/**/*
     - examples/**/*
-  TargetRubyVersion: 2.1  
+  TargetRubyVersion: 2.1
 
 ClassLength:
+  Max: 500
+
+ModuleLength:
   Max: 500
 
 Documentation:

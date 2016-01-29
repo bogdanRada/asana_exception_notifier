@@ -13,6 +13,7 @@ PATH
       em-http-request (~> 1.1, >= 1.1.2)
       eventmachine (~> 1.0, >= 1.0.7)
       exception_notification (~> 4.1, >= 4.1.4)
+      multipart_body
       tilt (>= 1.4, < 3)
 
 GEM
@@ -98,6 +99,7 @@ GEM
     minitest (5.8.4)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
+    multipart_body (0.2.1)
     netrc (0.11.0)
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)

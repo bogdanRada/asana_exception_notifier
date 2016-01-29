@@ -53,7 +53,7 @@ module AsanaExceptionNotifier
         uri = Addressable::URI.parse(url)
         conn_options = em_connection_options.merge(ssl: { sni_hostname: uri.host })
         em_request = EventMachine::HttpRequest.new(url, conn_options)
-        em_request.send(options.fetch('http_method', 'get'), em_request_options(options))
+        em_request.send(options.fetch(:http_method, 'get'), em_request_options(options))
       end
 
       # Method that fetch the data from a URL and registers the error and success callback to the HTTP object
@@ -66,6 +66,7 @@ module AsanaExceptionNotifier
       # @param [Proc] block If the response is not blank, the block will receive the response
       # @return [void]
       def fetch_data(url, options = {}, &block)
+        options = options.symbolize_keys
         http = em_request(url, options)
         register_error_callback(http)
         register_success_callback(http, options, &block)
