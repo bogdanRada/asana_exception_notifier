@@ -10,12 +10,12 @@ module AsanaExceptionNotifier
       @template_path = template_path
       @exception = exception
       @options = options.symbolize_keys
+      @boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
       @template_details = setup_template_details
       @env = @options[:env]
       @request = @env.present? && defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : nil
       @tempfile = Tempfile.new(SecureRandom.uuid, encoding: 'utf-8')
       @template_params = parse_exception_options
-      @boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
       @content = render
     end
 
