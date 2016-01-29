@@ -33,37 +33,21 @@ module AsanaExceptionNotifier
       io.read
     end
 
-    def exception_data(exception)
-      {
-        error_class: exception.class.to_s,
-        message:  exception.respond_to?(:message) ? exception.message : exception.inspect,
-        backtrace: exception.respond_to?(:backtrace) ? exception.backtrace : '',
-        cause: exception.respond_to?(:cause) ? exception.cause : ''
-      }
-    end
-
-    def setup_env_params(env)
-      return {} if env.blank? || !defined?(ActionDispatch::Request)
-      request = ActionDispatch::Request.new(env)
-      {
-        url: request.original_url,
-        http_method: request.method,
-        ip_address: request.remote_ip,
-        parameters: request.filtered_parameters,
-        timestamp: Time.current,
-        session: request.session,
-        environment: request.filtered_env,
-        status: request.status,
-        body: request.body
-      }
-    end
-
     def show_hash_content(hash)
       hash.map do |key, value|
         value.is_a?(Hash) ? show_hash_content(value) : ["#{key}:", value]
       end.join("\n  ")
     end
 
+    def tempfile_details(tempfile)
+      file_details = get_extension_and_name_from_file(tempfile)
+      {
+        file: tempfile,
+        path:  tempfile.path,
+        filename: file_details[:filename],
+        extension:  file_details[:extension]
+      }
+    end
     #  returns the logger used to log messages and errors
     #
     # @return [Logger]
@@ -94,14 +78,6 @@ module AsanaExceptionNotifier
 
     def default_template_path
       File.join(File.dirname(__FILE__), 'note_templates', 'asana_exception_notifier.html.erb')
-    end
-
-    def setup_temfile_upload(content, file_path)
-      file_details = get_extension_and_name_from_file(file_path)
-      tempfile = Tempfile.new([SecureRandom.uuid, file_details[:extension]], encoding: 'utf-8')
-      tempfile.write(content)
-      tempfile.close
-      tempfile_details(tempfile, content, file_details)
     end
 
     def template_path_exist(path)
@@ -136,64 +112,10 @@ module AsanaExceptionNotifier
       }
     end
 
-    def tempfile_details(tempfile, content, template_details)
-      file_details = get_extension_and_name_from_file(tempfile)
-      details = {
-        file: tempfile,
-        path:  tempfile.path,
-        filename: file_details[:filename],
-        extension:  file_details[:extension],
-        content: content
-      }
-      multipart_file_details(details, template_details)
-    end
-
-    def file_upload_request_options(boundary, body, file_details)
-      {
-        body: body.to_s,
-        file_details: file_details,
-        head:
-        {
-          'Content-Type' => "multipart/form-data;boundary=#{boundary}",
-          'Content-Length' => File.size(file_details[:path]),
-          'Expect' => '100-continue'
-        }
-      }
-    end
-
-    def parse_exception_options(exception, options)
-      options.symbolize_keys!
-      env = options[:env]
-      {
-        env: env,
-        exception: exception,
-        server:  Socket.gethostname,
-        rails_root: defined?(Rails) ? Rails.root : nil,
-        process: $PROCESS_ID,
-        data: (env.blank? ? {} : env[:'exception_notifier.exception_data']).merge(options[:data] || {}),
-        fault_data: exception_data(exception),
-        request: setup_env_params(env)
-      }.merge(options).reject { |_key, value| value.blank? }
-    end
-
     def setup_em_options(options)
       options.symbolize_keys!
       options[:em_request] ||= {}
-      options[:em_request][:head] ||= {}
       options
-    end
-
-    def multipart_file_details(file_details, template_details)
-      extension = template_details[:path].scan(/\.(\w+)\.?(.*)?/)[0][0]
-      mime_type = Rack::Mime::MIME_TYPES[".#{extension}"]
-      file_part = Part.new(name: 'file',
-                           body: file_details[:content],
-                           filename: "#{file_details[:filename]}.#{extension}",
-                           content_type: mime_type
-                          )
-      boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
-      body = MultipartBody.new([file_part], boundary)
-      file_upload_request_options(boundary, body, file_details)
     end
 
     # Mount table for hash, using name and value and adding a name_value class
