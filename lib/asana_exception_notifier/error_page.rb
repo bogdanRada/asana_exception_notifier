@@ -4,7 +4,7 @@ module AsanaExceptionNotifier
   class ErrorPage
     include AsanaExceptionNotifier::Helper
 
-    attr_reader :template_path, :exception, :options, :template_params, :env
+    attr_reader :template_path, :exception, :options, :boundary, :template_details, :env, :request, :tempfile, :template_params, :content
 
     def initialize(template_path, exception, options)
       @template_path = template_path
@@ -16,7 +16,7 @@ module AsanaExceptionNotifier
       @request = @env.present? && defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : nil
       @tempfile = Tempfile.new(SecureRandom.uuid, encoding: 'utf-8')
       @template_params = parse_exception_options
-      @content = render
+      @content = render_template
     end
 
     def setup_template_details
@@ -62,11 +62,10 @@ module AsanaExceptionNotifier
       }
     end
 
-    def render
-      rows = mount_table_for_hash(@template_params.except(:fault_data))
-      @template_params[:table_data] = rows
-      @template_params[:format_type] = "%-#{max_length(rows, 0).size}s: %-#{max_length(rows, 1).size}s\r\n"
-      Tilt.new(template_path).render(self, @template_params.stringify_keys)
+    def render_template(template = nil)
+      current_template = template || @template_path
+      @template_params[:table_data] = mount_table_for_hash(@template_params.except(:fault_data)) if template.present?
+      Tilt.new(current_template).render(self, @template_params.stringify_keys)
     end
 
     def create_tempfile
