@@ -103,15 +103,22 @@ module AsanaExceptionNotifier
       rows
     end
 
-    def tempfile_details(tempfile, content)
+    def get_extension_and_name_from_file(tempfile)
       pathname = Pathname.new(tempfile.path)
       extension = pathname.extname
-      filename = File.basename(pathname, extension)
+      {
+        extension: extension,
+        filename: File.basename(pathname, extension)
+      }
+    end
+
+    def tempfile_details(tempfile, content)
+      file_details = get_extension_and_name_from_file(tempfile)
       details = {
         file: tempfile,
         path:  tempfile.path,
-        filename: filename,
-        extension:  extension,
+        filename: file_details[:filename],
+        extension:  file_details[:extension],
         content: content
       }
       multipart_file_details(details)
