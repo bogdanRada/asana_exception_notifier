@@ -1,22 +1,18 @@
 A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
-<% if exception.respond_to?(:backtrace)  %>
-<% if exception.backtrace.present?  %>
-  ===================================================================
-  Backtrace:
-  ===================================================================
-
-  <%= exception.backtrace.slice(0, 5).join("\n  ") %>
+<% if exception.respond_to?(:backtrace) && exception.backtrace.present? %>
+File:                    <%=   exception.backtrace.slice(0, 1).join("\n  ")  %>
 <% end %>
-<% end %>
-  ===================================================================
-Rack Environment:
-===================================================================
-
 PID:                     <%= process %>
 PWD:                     <%= pwd %>
 Uname:                   <%= uname %>
 Server:                  <%= server %>
 Error time:	             <%= timestamp %>
+<% if request_path.present? %>
 Request URI:             <%= request_path %>
-Referer:	               <%= referrer %>
-User Agent:	             <%= user_agent %>
+<% end %>
+<% if referrer.present? %>
+Referer:             <%= referrer %>
+<% end %>
+<% if user_agent.present? %>
+User Agent:	             <%= request_path %>
+<% end %>
