@@ -93,7 +93,7 @@ module AsanaExceptionNotifier
       # @return [void]
       def register_success_callback(http, options)
         http.callback do
-          res = callback_before_success(get_response_from_request(http))
+          res = callback_before_success(get_response_from_request(http, options))
           callback = options.fetch('callback', nil)
           block_given? ? yield(res) : callback.call(res)
         end

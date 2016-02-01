@@ -175,8 +175,9 @@ module AsanaExceptionNotifier
       }
     end
 
-    def get_response_from_request(http)
-      http.respond_to?(:response) ? http.response : http.responses[:callback]
+    def get_response_from_request(http, options)
+      http_response = http.respond_to?(:response) ? http.response : http.responses[:callback]
+      options[:multi].present? ? http_response[options[:request_name]].response : http_response
     end
 
     def split_archive(archive, partial_name)
