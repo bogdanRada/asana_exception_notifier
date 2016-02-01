@@ -12,9 +12,7 @@ module AsanaExceptionNotifier
       @options = options.symbolize_keys
       @template_details = setup_template_details
       @env = (@options[:env] || {}).stringify_keys
-      @request = (defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)) if @env.present?
-      @tempfile = Tempfile.new([SecureRandom.uuid, ".#{@template_details[:template_extension]}"], encoding: 'utf-8')
-      @tempfile_path = @tempfile.path
+      @request = (defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env))
       @template_params = parse_exception_options
       @content = render_template
     end
@@ -33,10 +31,10 @@ module AsanaExceptionNotifier
         process: $PROCESS_ID,
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         fault_data: exception_data,
-        request: setup_env_params,
+        request_data: setup_env_params,
         timestamp: Time.now,
-        referrer:  @env.fetch('HTTP_REFERER', ''),
-        user_agent: @env.fetch('HTTP_USER_AGENT', '')
+        uname: Sys::Uname.uname.to_s,
+        pwd:  File.expand_path($PROGRAM_NAME)
       }.merge(@options).reject { |_key, value| value.blank? }
     end
 
@@ -50,7 +48,7 @@ module AsanaExceptionNotifier
     end
 
     def setup_env_params
-      return {} if @request.blank?
+      return {} if @request.blank? || (@request.respond_to?(:env) && @request.env.blank?)
       {
         url: @request.original_url,
         http_method: @request.method,
@@ -67,25 +65,18 @@ module AsanaExceptionNotifier
     end
 
     def create_tempfile
-      @tempfile.write(@content)
-      @tempfile.close
-    end
-
-    def compress_tempfile(temfile_info)
-      archive = create_archive(File.dirname(@tempfile_path), temfile_info[:filename])
-      zf = ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
-        zipfile.add(@tempfile_path.sub(File.dirname(@tempfile_path) + '/', ''), @tempfile_path)
-      end
-      logger.debug "[AsanaExceptionNotifier] Created Archive  #{archive} from #{zf.name}, size = #{zf.size}, compressed size = #{zf.compressed_size}"
-      archive
+      tempfile = Tempfile.new([SecureRandom.uuid, ".#{@template_details[:template_extension]}"], encoding: 'utf-8')
+      tempfile.write(@content)
+      tempfile.close
+      details = tempfile_details(tempfile)
+      [details[:filename], details[:path]]
     end
 
     def fetch_archives
-      create_tempfile
-      temfile_info = tempfile_details(@tempfile)
-      archive = compress_tempfile(temfile_info)
-      FileUtils.rm_rf([@tempfile_path])
-      split_archive(archive, "part_#{temfile_info[:filename]}", 512)
+      filename, path = create_tempfile
+      archive = compress_files(File.dirname(path), filename, [path])
+      FileUtils.rm_rf([path])
+      split_archive(archive, "part_#{filename}", 512)
     end
 
     def rack_session
@@ -102,6 +93,14 @@ module AsanaExceptionNotifier
 
     def request_path
       @env.fetch('PATH_INFO', '')
+    end
+
+    def referrer
+      @env.fetch('HTTP_REFERER', '')
+    end
+
+    def user_agent
+      @env.fetch('HTTP_USER_AGENT', '')
     end
   end
 end

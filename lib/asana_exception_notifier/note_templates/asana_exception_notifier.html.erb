@@ -8,34 +8,6 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 
   <%= body.gsub(/^/, '  ') %>
 <% end %>
-
-<% if exception.respond_to?(:backtrace)  %>
-<% if exception.backtrace.present?  %>
-  ===================================================================
-  Backtrace:
-  ===================================================================
-
-  <%= exception.backtrace.join("\n  ") %>
-<% end %>
-<% end %>
-<% if exception.respond_to?(:backtrace)  %>
-<% if exception.backtrace.present?  %>
-  ===================================================================
-  Backtrace:
-  ===================================================================
-
-  <%= exception.backtrace.join("\n  ") %>
-<% end %>
-<% end %>
-<% if exception.respond_to?(:backtrace)  %>
-<% if exception.backtrace.present?  %>
-  ===================================================================
-  Backtrace:
-  ===================================================================
-
-  <%= exception.backtrace.join("\n  ") %>
-<% end %>
-<% end %>
 <% if exception.respond_to?(:backtrace)  %>
 <% if exception.backtrace.present?  %>
   ===================================================================
@@ -49,13 +21,11 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 Rack Environment:
 ===================================================================
 
-PID:                     <%= $$ %>
-PWD:                     <%= File.expand_path($0) %>
-Uname:                   <%= Sys::Uname.uname.to_s %>
+PID:                     <%= process %>
+PWD:                     <%= pwd %>
+Uname:                   <%= uname %>
 Server:                  <%= server %>
 Error time:	             <%= timestamp %>
-<% if request.present? %>
 Request URI:             <%= request_path %>
 Referer:	               <%= referrer %>
-User Agent:	             <%= user_agent %>
-<% end %>
+User Agent:	               <%= user_agent %>

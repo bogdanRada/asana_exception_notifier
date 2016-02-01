@@ -192,6 +192,20 @@ module AsanaExceptionNotifier
       archives.blank? ? [archive] : archives
     end
 
+    def compress_files(directory, name, files)
+      archive = create_archive(directory, name)
+      ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
+        add_files_to_zip(zipfile, files)
+      end
+      archive
+    end
+
+    def add_files_to_zip(zipfile, files)
+      files.each do |file|
+        zipfile.add(file.sub(File.dirname(file) + '/', ''), file)
+      end
+    end
+
     def create_archive(directory, name)
       archive = File.join(directory, name + '.zip')
       archive_dir = File.dirname(archive)
