@@ -65,19 +65,18 @@ module AsanaExceptionNotifier
       # @param [Lambda] callback The callback that will be called if the response is blank
       # @param [Proc] block If the response is not blank, the block will receive the response
       # @return [void]
-      def fetch_data(http, options = {}, &block)
+      def fetch_data(options = {}, &block)
         options = options.symbolize_keys
         if options[:multi_request] && multi_manager.present?
-          multi_fetch_data(http, options, &block)
+          multi_fetch_data(options, &block)
         else
-          register_error_callback(http)
-          register_success_callback(http, options, &block)
+          register_error_callback(@http)
+          register_success_callback(@http, options, &block)
         end
       end
 
-
-      def multi_fetch_data(http, options = {}, &block)
-        multi_manager.add options[:request_name], http
+      def multi_fetch_data(options = {}, &block)
+        multi_manager.add options[:request_name], @http
         return unless options[:request_final]
         register_error_callback(multi_manager)
         register_success_callback(multi_manager, options, &block)

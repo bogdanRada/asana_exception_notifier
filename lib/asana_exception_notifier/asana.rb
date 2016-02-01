@@ -51,14 +51,36 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(error_page)
-      api_key = @default_options.fetch(:asana_api_key, nil)
-      AsanaExceptionNotifier::Request.new(api_key,
+      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
                                           'https://app.asana.com/api/1.0/tasks',
                                           'http_method' => 'post',
                                           'em_request' => { body: build_request_options(error_page) },
                                           'action' => 'creation'
                                          ) do |http_response|
-        error_page.upload_log_file_to_task(api_key, http_response)
+        upload_log_file_to_task(error_page, http_response)
+      end
+    end
+
+    def upload_log_file_to_task(error_page, message)
+      archives = error_page.fetch_archives
+      archives.each do |zip|
+        upload_archive(archives, zip, message)
+      end
+    end
+
+    def upload_archive(archives, zip, message)
+      body = multipart_file_upload_details(zip)
+      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+                                          "https://app.asana.com/api/1.0/tasks/#{message.fetch('id', 85_861_829_362_988)}/attachments",
+                                          'http_method' => 'post',
+                                          'em_request' => body,
+                                          'multi_request' => true,
+                                          'request_name' => zip,
+                                          'request_final' => archives.last == zip,
+                                          'action' => 'upload',
+                                          'multi_manager' => multi_request_manager
+                                         ) do |_http_response|
+        FileUtils.rm_rf([zip])
       end
     end
   end

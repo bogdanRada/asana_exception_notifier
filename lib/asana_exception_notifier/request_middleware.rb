@@ -15,8 +15,8 @@ module AsanaExceptionNotifier
       puts JSON.pretty_generate(
         headers: head,
         url: client.req.uri,
-        body:force_utf8_encoding(body),
-        #object: client.inspect
+        body: force_utf8_encoding(body),
+      # object: client.inspect
       )
       [head, body]
     end

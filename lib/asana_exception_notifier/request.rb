@@ -43,22 +43,22 @@ module AsanaExceptionNotifier
     end
 
     def send_request_and_rescue
-      http = em_request(@url, @options)
-      send_request(http)
+      @http = em_request(@url, @options)
+      send_request
     rescue => exception
       log_exception(exception)
       fail(result: { message: exception })
     end
 
-    def send_request(http)
-      fetch_data(http, @options) do |http_response|
-        handle_multi_response(http, http_response)
+    def send_request
+      fetch_data(@options) do |http_response|
+        handle_multi_response(http_response)
       end
     end
 
-    def handle_multi_response(http, http_response)
+    def handle_multi_response(http_response)
       logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{http_response}")
-      @multi_manager.requests.delete(http) if @multi_manager.present?
+      @multi_manager.requests.delete(@http) if @multi_manager.present?
       if http_response.is_a?(Array)
         http_response.each { |response| handle_response(response) }
       else

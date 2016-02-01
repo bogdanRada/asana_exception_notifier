@@ -14,6 +14,7 @@ module AsanaExceptionNotifier
       @env = (@options[:env] || {}).stringify_keys
       @request = (defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)) if @env.present?
       @tempfile = Tempfile.new([SecureRandom.uuid, ".#{@template_details[:template_extension]}"], encoding: 'utf-8')
+      @tempfile_path = @tempfile.path
       @template_params = parse_exception_options
       @content = render_template
     end
@@ -71,41 +72,28 @@ module AsanaExceptionNotifier
     end
 
     def get_tempfile_archive(temfile_info)
-      archive = File.join(File.dirname(@tempfile.path), temfile_info[:filename] + '.zip')
-      FileUtils.mkdir_p(File.dirname(archive)) unless File.directory?(File.dirname(archive))
+      archive = File.join(File.dirname(@tempfile_path), temfile_info[:filename] + '.zip')
+      archive_dir = File.dirname(archive)
+      FileUtils.mkdir_p(archive_dir) unless File.directory?(archive_dir)
       FileUtils.rm archive, force: true if File.exist?(archive)
       archive
     end
 
-    def compress_tempfile
-      temfile_info = tempfile_details(@tempfile)
+    def compress_tempfile(temfile_info)
       archive = get_tempfile_archive(temfile_info)
       zf = ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
-        zipfile.add(@tempfile.path.sub(File.dirname(@tempfile.path) + '/', ''), @tempfile.path)
+        zipfile.add(@tempfile_path.sub(File.dirname(@tempfile_path) + '/', ''), @tempfile_path)
       end
-      FileUtils.rm_rf([@tempfile.path])
       logger.debug "[AsanaExceptionNotifier] Created Archive  #{archive} from #{zf.name}, size = #{zf.size}, compressed size = #{zf.compressed_size}"
-      split_archive(archive, "part_#{temfile_info[:filename]}", 512)
+      archive
     end
 
-    def upload_log_file_to_task(api_key, message = {})
+    def fetch_archives
       create_tempfile
-      archives = compress_tempfile
-      archives.each do |zip|
-        body = multipart_file_upload_details(zip)
-        AsanaExceptionNotifier::Request.new(api_key,
-                                            "https://app.asana.com/api/1.0/tasks/#{message.fetch('id', 85861829362988)}/attachments",
-                                            'http_method' => 'post',
-                                            'em_request' => body,
-                                            'multi_request' => true,
-                                            'request_name' => zip,
-                                            'request_final' => archives.last == zip,
-                                            'action' => 'upload',
-                                            'multi_manager' => multi_request_manager
-                                           ) do |_http_response|
-          FileUtils.rm_rf([zip])
-        end
-      end
+      temfile_info = tempfile_details(@tempfile)
+      archive = compress_tempfile(temfile_info)
+      FileUtils.rm_rf([@tempfile_path])
+      split_archive(archive, "part_#{temfile_info[:filename]}", 512)
     end
 
     def rack_session
