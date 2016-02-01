@@ -69,12 +69,13 @@ module ExceptionNotifier
     end
 
     def upload_archive(archives, zip, message)
+      return if message.blank?
       body = multipart_file_upload_details(zip)
       AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
                                           "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
                                           'http_method' => 'post',
                                           'em_request' => body,
-                                          'multi_request' => true,
+                                          'multi_request' => @default_options.fetch(:multi_request, false) || false,
                                           'request_name' => zip,
                                           'request_final' => archives.last == zip,
                                           'action' => 'upload',
