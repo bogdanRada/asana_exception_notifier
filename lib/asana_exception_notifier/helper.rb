@@ -191,5 +191,13 @@ module AsanaExceptionNotifier
       end
       archives.blank? ? [archive] : archives
     end
+
+    def create_archive(directory, name)
+      archive = File.join(directory, name + '.zip')
+      archive_dir = File.dirname(archive)
+      FileUtils.mkdir_p(archive_dir) unless File.directory?(archive_dir)
+      FileUtils.rm archive, force: true if File.exist?(archive)
+      archive
+    end
   end
 end

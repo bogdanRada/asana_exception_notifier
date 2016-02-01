@@ -71,16 +71,8 @@ module AsanaExceptionNotifier
       @tempfile.close
     end
 
-    def get_tempfile_archive(temfile_info)
-      archive = File.join(File.dirname(@tempfile_path), temfile_info[:filename] + '.zip')
-      archive_dir = File.dirname(archive)
-      FileUtils.mkdir_p(archive_dir) unless File.directory?(archive_dir)
-      FileUtils.rm archive, force: true if File.exist?(archive)
-      archive
-    end
-
     def compress_tempfile(temfile_info)
-      archive = get_tempfile_archive(temfile_info)
+      archive = create_archive(File.dirname(@tempfile_path), temfile_info[:filename])
       zf = ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
         zipfile.add(@tempfile_path.sub(File.dirname(@tempfile_path) + '/', ''), @tempfile_path)
       end
