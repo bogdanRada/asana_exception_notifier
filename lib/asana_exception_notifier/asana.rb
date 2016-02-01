@@ -57,7 +57,7 @@ module ExceptionNotifier
                                           'em_request' => { body: build_request_options(error_page) },
                                           'action' => 'creation'
                                          ) do |http_response|
-        upload_log_file_to_task(error_page, http_response)
+        upload_log_file_to_task(error_page, http_response.fetch('data', {}))
       end
     end
 
@@ -71,7 +71,7 @@ module ExceptionNotifier
     def upload_archive(archives, zip, message)
       body = multipart_file_upload_details(zip)
       AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-                                          "https://app.asana.com/api/1.0/tasks/#{message.fetch('id', 85_861_829_362_988)}/attachments",
+                                          "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
                                           'http_method' => 'post',
                                           'em_request' => body,
                                           'multi_request' => true,

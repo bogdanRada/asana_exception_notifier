@@ -156,7 +156,7 @@ module AsanaExceptionNotifier
     def create_upload_file_part(file)
       Part.new(name: 'file',
                body: force_utf8_encoding(File.read(file)),
-               filename: File.basename(file),
+               filename:  file,
                content_type: 'application/zip'
               )
     end
