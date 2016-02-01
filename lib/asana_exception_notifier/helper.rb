@@ -110,6 +110,15 @@ module AsanaExceptionNotifier
       rows
     end
 
+    # returns the root path of the gem
+    #
+    # @return [void]
+    #
+    # @api public
+    def root
+      File.expand_path(File.dirname(File.dirname(__dir__)))
+    end
+
     def get_extension_and_name_from_file(tempfile)
       path = tempfile.respond_to?(:path) ? tempfile.path : tempfile
       pathname = Pathname.new(path)
@@ -133,6 +142,32 @@ module AsanaExceptionNotifier
     def mount_table_for_hash(hash, _options = {})
       return if hash.blank?
       get_hash_rows(hash)
+    end
+
+    def create_upload_file_part(file)
+      Part.new(name: 'file',
+               body: force_utf8_encoding(File.read(file)),
+               filename: File.basename(file),
+               content_type: 'application/zip'
+              )
+    end
+
+    def multipart_file_upload_details(file)
+      boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
+      body = MultipartBody.new([create_upload_file_part(file)], boundary)
+      file_upload_request_options(boundary, body, file)
+    end
+
+    def file_upload_request_options(boundary, body, file)
+      {
+        body: body.to_s,
+        head:
+        {
+          'Content-Type' => "multipart/form-data;boundary=#{boundary}",
+          'Content-Length' => File.size(file),
+          'Expect' => '100-continue'
+        }
+      }
     end
   end
 end

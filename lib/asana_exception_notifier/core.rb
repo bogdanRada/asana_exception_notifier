@@ -19,8 +19,8 @@ module AsanaExceptionNotifier
       # @return [Hash] Returns the connection options used for connecting to API's
       def em_connection_options
         {
-          connect_timeout: 5,        # default connection setup timeout
-          inactivity_timeout: 10,    # default connection inactivity (post-setup) timeout
+          connect_timeout: 60,       # default connection setup timeout
+          inactivity_timeout: 60,    # default connection inactivity (post-setup) timeout
           ssl: {
             verify_peer: false
           },
@@ -34,7 +34,7 @@ module AsanaExceptionNotifier
       # Returns the request options used for connecting to API's
       #
       # @return [Hash] Returns the request options used for connecting to API's
-      def em_request_options(_options = {})
+      def em_request_options
         {
           redirects: 5,              # follow 3XX redirects up to depth 5
           keepalive: true,           # enable keep-alive (don't send Connection:close header)
@@ -53,7 +53,7 @@ module AsanaExceptionNotifier
         uri = Addressable::URI.parse(url)
         conn_options = em_connection_options.merge(ssl: { sni_hostname: uri.host })
         em_request = EventMachine::HttpRequest.new(url, conn_options)
-        em_request.send(options.fetch(:http_method, 'get'), em_request_options(options))
+        em_request.send(options.fetch(:http_method, 'get'), em_request_options)
       end
 
       # Method that fetch the data from a URL and registers the error and success callback to the HTTP object

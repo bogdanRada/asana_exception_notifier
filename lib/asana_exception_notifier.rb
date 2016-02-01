@@ -11,6 +11,9 @@ require 'eventmachine'
 require 'exception_notification'
 require 'multipart_body'
 require 'rack'
+require 'zip'
+require 'rack/mime'
+require 'sys-uname'
 
 require 'erb'
 require 'tilt'
@@ -24,5 +27,12 @@ require 'json'
 require 'tempfile'
 require 'English'
 require 'pathname'
+
+Zip.setup do |c|
+  c.on_exists_proc = true
+  c.continue_on_exists_proc = true
+  c.unicode_names = false
+  c.default_compression = Zlib::BEST_COMPRESSION
+end
 
 Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }

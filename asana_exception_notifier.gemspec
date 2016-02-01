@@ -23,6 +23,9 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'multipart_body', '~> 0.2', '>= 0.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
   s.add_runtime_dependency 'rack', '~> 1.6', '>= 1.6'
+  s.add_runtime_dependency 'rubyzip', '>= 1.0.0' # will load new rubyzip version
+  s.add_runtime_dependency 'zip-zip' # will load compatibility for old rubyzip API
+  s.add_runtime_dependency 'sys-uname'
 
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
   s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'

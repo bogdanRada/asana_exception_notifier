@@ -14,3 +14,11 @@ Rack Environment:
 
 PID:                     <%= $$ %>
 PWD:                     <%= File.expand_path($0) %>
+Uname:                   <%= Sys::Uname.uname.to_s %>
+Server:                  <%= server %>
+Error time:	             <%= timestamp %>
+<% if request.present? %>
+Request URI:             <%= request[:url] %>
+Referer:	               <%= referrer %>
+User Agent:	             <%= user_agent %>
+<% end %>

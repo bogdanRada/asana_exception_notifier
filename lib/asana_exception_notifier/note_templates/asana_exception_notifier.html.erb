@@ -1,15 +1,34 @@
 A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
+
+<% if body = extract_body(@env) %>
+
+  ===================================================================
+  Request Body:
+  ===================================================================
+
+  <%= body.slice(0, 20).gsub(/^/, '  ') %>
+<% end %>
+
 <% if exception.respond_to?(:backtrace)  %>
 <% if exception.backtrace.present?  %>
   ===================================================================
   Backtrace:
   ===================================================================
 
-  <%= exception.backtrace.slice(0, 5).join("\n  ") %>
+  <%= exception.backtrace.slice(0, 10).join("\n  ") %>
 <% end %>
 <% end %>
   ===================================================================
 Rack Environment:
 ===================================================================
+
 PID:                     <%= $$ %>
 PWD:                     <%= File.expand_path($0) %>
+Uname:                   <%= Sys::Uname.uname.to_s %>
+Server:                  <%= server %>
+Error time:	             <%= timestamp %>
+<% if request.present? %>
+Request URI:             <%= request[:url] %>
+Referer:	               <%= referrer %>
+User Agent:	             <%= user_agent %>
+<% end %>

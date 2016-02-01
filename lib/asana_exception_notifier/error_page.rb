@@ -10,11 +10,10 @@ module AsanaExceptionNotifier
       @template_path = template_path
       @exception = exception
       @options = options.symbolize_keys
-      @boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
       @template_details = setup_template_details
-      @env = @options[:env]
+      @env = (@options[:env] || {}).stringify_keys
       @request = (defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)) if @env.present?
-      @tempfile = Tempfile.new(SecureRandom.uuid, encoding: 'utf-8')
+      @tempfile = Tempfile.new([SecureRandom.uuid, ".#{@template_details[:template_extension]}"], encoding: 'utf-8')
       @template_params = parse_exception_options
       @content = render_template
     end
@@ -34,7 +33,10 @@ module AsanaExceptionNotifier
         process: $PROCESS_ID,
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         fault_data: exception_data,
-        request: setup_env_params
+        request: setup_env_params,
+        timestamp: Time.now,
+        referrer:  @env.fetch('HTTP_REFERER', ''),
+        user_agent: @env.fetch('HTTP_USER_AGENT', '')
       }.merge(@options).reject { |_key, value| value.blank? }
     end
 
@@ -48,13 +50,12 @@ module AsanaExceptionNotifier
     end
 
     def setup_env_params
-      return if @request.blank?
+      return {} if @request.blank?
       {
         url: @request.original_url,
         http_method: @request.method,
         ip_address: @request.remote_ip,
         parameters: @request.filtered_parameters,
-        timestamp: Time.current,
         session: @request.session,
         environment: @request.filtered_env
       }
@@ -70,30 +71,28 @@ module AsanaExceptionNotifier
       @tempfile.close
     end
 
-    def create_upload_file_part
-      create_tempfile
-      Part.new(name: 'file',
-               body: force_utf8_encoding(@content),
-               filename: "#{tempfile_details(@tempfile)[:filename]}.#{@template_details[:template_extension]}",
-               content_type: @template_details[:mime]
-              )
+    def get_tempfile_archive(temfile_info)
+      archive = File.join(File.dirname(@tempfile.path), temfile_info[:filename] + '.zip')
+      FileUtils.mkdir_p(File.dirname(archive)) unless File.directory?(File.dirname(archive))
+      FileUtils.rm archive, force: true if File.exist?(archive)
+      archive
     end
 
-    def multipart_file_upload_details
-      body = MultipartBody.new([create_upload_file_part], @boundary)
-      file_upload_request_options(body)
-    end
-
-    def file_upload_request_options(body)
-      {
-        body: body.to_s,
-        head:
-        {
-          'Content-Type' => "multipart/form-data;boundary=#{@boundary}",
-          'Content-Length' => File.size(tempfile_details(@tempfile)[:file_path]),
-          'Expect' => '100-continue'
-        }
-      }
+    def compress_tempfile
+      temfile_info = tempfile_details(@tempfile)
+      archive = get_tempfile_archive(temfile_info)
+      ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
+        zipfile.add(@tempfile.path.sub(File.dirname(@tempfile.path) + '/', ''), @tempfile.path)
+      end
+      zf = Zip::File.new(archive)
+      zf.each_with_index do |entry, index|
+        logger.debug "entry #{entry.class} #{index} is #{entry.name}, size = #{entry.size}, compressed size = #{entry.compressed_size}"
+      end
+      FileUtils.rm_rf([@tempfile.path])
+      # Zip::File.split(archive, 102_400, false) do |part_count, part_index, chunk_bytes, segment_bytes|
+      #   logger.debug "#{part_index} of #{part_count} part splitting: #{(chunk_bytes.to_f / segment_bytes.to_f * 100).to_i}%"
+      # end
+      [archive]
     end
 
     def rack_session
