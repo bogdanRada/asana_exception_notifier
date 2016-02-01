@@ -39,20 +39,20 @@ module AsanaExceptionNotifier
     end
 
     def send_request_and_rescue
-      send_request
+      send_request(@options[:request_name])
     rescue => exception
       log_exception(exception)
       fail(result: { message: exception })
     end
 
-    def parse_http_response(http_response)
-      response = http_response.is_a?(Hash) ? http_response : JSON.parse(http_response)
-      %w(data errors).any? { |key| response.keys.include?(key) }.present? ? response : JSON.parse(response.values.first.response)
+    def get_response(http_response, request_name)
+      response = @options[:multi].present? ? http_response[request_name].response : http_response
+      JSON.parse(response)
     end
 
-    def send_request
+    def send_request(request_name)
       fetch_data(@url, @options) do |http_response|
-        data =  parse_http_response(http_response)
+        data = get_response(http_response, request_name)
         message = data.fetch('data', {})
         callback_task_creation(data['errors'], message, action: 'creation')
       end
