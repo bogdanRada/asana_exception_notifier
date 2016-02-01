@@ -80,18 +80,15 @@ module AsanaExceptionNotifier
     def compress_tempfile
       temfile_info = tempfile_details(@tempfile)
       archive = get_tempfile_archive(temfile_info)
-      ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
+      zf =::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
         zipfile.add(@tempfile.path.sub(File.dirname(@tempfile.path) + '/', ''), @tempfile.path)
       end
-      zf = Zip::File.new(archive)
-      zf.each_with_index do |entry, index|
-        logger.debug "[AsanaExceptionNotifier] Created Archive #{index} is #{entry.name}, size = #{entry.size}, compressed size = #{entry.compressed_size}"
-      end
-      archives = []
+      FileUtils.rm_rf([@tempfile.path])
+      logger.debug "[AsanaExceptionNotifier] Created Archive  #{archive} from #{zf.name}, size = #{zf.size}, compressed size = #{zf.compressed_size}"
       partial_name = "part_#{temfile_info[:filename]}"
-      Zip::File.split(archive, 512, false, partial_name) do |part_count, part_index, chunk_bytes, segment_bytes|
-        logger.debug "[AsanaExceptionNotifier] Archive #{archive} is splitting #{part_index} of #{part_count} part #{(chunk_bytes.to_f / segment_bytes.to_f * 100).to_i}%"
-        archives << File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', part_index)}")
+      indexes = Zip::File.split(archive, 512, true, partial_name)
+      archives = indexes.times.map do |index|
+        File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', index + 1)}")
       end
       archives.blank? ? [archive] : archives
     end
