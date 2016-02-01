@@ -12,8 +12,6 @@ module AsanaExceptionNotifier
     module Core
       include AsanaExceptionNotifier::Helper
 
-      attr_reader :params
-
       # Returns the connection options used for connecting to API's
       #
       # @return [Hash] Returns the connection options used for connecting to API's

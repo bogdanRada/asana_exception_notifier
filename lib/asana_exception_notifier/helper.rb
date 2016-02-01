@@ -1,9 +1,9 @@
 module AsanaExceptionNotifier
   # module that is used for formatting numbers using metrics
   module Helper
-  # function that makes the methods incapsulated as utility functions
+    # function that makes the methods incapsulated as utility functions
 
-  module_function
+    module_function
 
     def permitted_options
       {
@@ -98,9 +98,11 @@ module AsanaExceptionNotifier
     end
 
     def run_em_reactor
-      EM.run do
-        yield if block_given?
-      end
+     Thread.new do
+        EM.run do
+          yield if block_given?
+        end
+      end.join
     end
 
     def template_dir
@@ -168,10 +170,10 @@ module AsanaExceptionNotifier
 
     def create_upload_file_part(file)
       Part.new(name: 'file',
-               body: force_utf8_encoding(File.read(file)),
-               filename:  file,
-               content_type: 'application/zip'
-              )
+      body: force_utf8_encoding(File.read(file)),
+      filename:  file,
+      content_type: 'application/zip'
+      )
     end
 
     def multipart_file_upload_details(file)

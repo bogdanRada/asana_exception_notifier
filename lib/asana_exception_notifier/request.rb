@@ -7,7 +7,7 @@ module AsanaExceptionNotifier
     include AsanaExceptionNotifier::Helper
     include EM::Deferrable
 
-    attr_reader :url, :options
+    attr_reader :url, :options, :api_key
 
     def initialize(api_key, url, options, &callback)
       @api_key = api_key
