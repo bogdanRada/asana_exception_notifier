@@ -25,6 +25,10 @@ module AsanaExceptionNotifier
       }
     end
 
+    def multi_request_manager
+      @multi_manager ||= EventMachine::MultiRequest.new
+    end
+
     def extract_body(env)
       return if env.blank? || !env.is_a?(Hash)
       io = env['rack.input']

@@ -88,10 +88,6 @@ module AsanaExceptionNotifier
       split_archive(archive, "part_#{temfile_info[:filename]}", 512)
     end
 
-    def multi_manager
-      @multi_manager ||= EventMachine::MultiRequest.new
-    end
-
     def upload_log_file_to_task(api_key, message = {})
       create_tempfile
       archives = compress_tempfile
@@ -105,7 +101,7 @@ module AsanaExceptionNotifier
                                             'request_name' => zip,
                                             'request_final' => archives.last == zip,
                                             'action' => 'upload',
-                                            'multi_manager' => multi_manager
+                                            'multi_manager' => multi_request_manager
                                            ) do |_http_response|
           FileUtils.rm_rf([zip])
         end
