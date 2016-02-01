@@ -80,17 +80,12 @@ module AsanaExceptionNotifier
     def compress_tempfile
       temfile_info = tempfile_details(@tempfile)
       archive = get_tempfile_archive(temfile_info)
-      zf =::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
+      zf = ::Zip::File.open(archive, Zip::File::CREATE) do |zipfile|
         zipfile.add(@tempfile.path.sub(File.dirname(@tempfile.path) + '/', ''), @tempfile.path)
       end
       FileUtils.rm_rf([@tempfile.path])
       logger.debug "[AsanaExceptionNotifier] Created Archive  #{archive} from #{zf.name}, size = #{zf.size}, compressed size = #{zf.compressed_size}"
-      partial_name = "part_#{temfile_info[:filename]}"
-      indexes = Zip::File.split(archive, 512, true, partial_name)
-      archives = indexes.times.map do |index|
-        File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', index + 1)}")
-      end
-      archives.blank? ? [archive] : archives
+      split_archive(archive, "part_#{temfile_info[:filename]}")
     end
 
     def upload_log_file_to_task(api_key, message)

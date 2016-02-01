@@ -67,18 +67,17 @@ module AsanaExceptionNotifier
       # @return [void]
       def fetch_data(url, options = {}, &block)
         options = options.symbolize_keys
+        http = em_request(url, options)
         if options[:multi]
-          multi_fetch_data(url, options, &block)
+          multi_fetch_data(http, options, &block)
         else
-          http = em_request(url, options)
           register_error_callback(http)
           register_success_callback(http, options, &block)
         end
       end
 
-      def multi_fetch_data(url, options = {}, &block)
+      def multi_fetch_data(http, options = {}, &block)
         @multi_manager ||= EventMachine::MultiRequest.new
-        http = em_request(url, options)
         @multi_manager.add options[:request_name], http
         register_error_callback(@multi_manager)
         register_success_callback(@multi_manager, options, &block)
@@ -94,7 +93,7 @@ module AsanaExceptionNotifier
       # @return [void]
       def register_success_callback(http, options)
         http.callback do
-          res = callback_before_success(http.respond_to?(:response) ? http.response : http.responses[:callback])
+          res = callback_before_success(get_response_from_request(http))
           callback = options.fetch('callback', nil)
           block_given? ? yield(res) : callback.call(res)
         end

@@ -174,5 +174,17 @@ module AsanaExceptionNotifier
         }
       }
     end
+
+    def get_response_from_request(http)
+      http.respond_to?(:response) ? http.response : http.responses[:callback]
+    end
+
+    def split_archive(archive, partial_name)
+      indexes = Zip::File.split(archive, 512, true, partial_name)
+      archives = Array.new(indexes) do |index|
+        File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', index + 1)}")
+      end
+      archives.blank? ? [archive] : archives
+    end
   end
 end
