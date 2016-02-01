@@ -177,11 +177,11 @@ module AsanaExceptionNotifier
 
     def get_response_from_request(http, options)
       http_response = http.respond_to?(:response) ? http.response : http.responses[:callback]
-      options[:multi].present? ? http_response[options[:request_name]].response : http_response
+      options[:multi_request].present? && http_response.is_a?(Hash) ? http_response.values.map(&:response) : http_response
     end
 
-    def split_archive(archive, partial_name)
-      indexes = Zip::File.split(archive, 512, true, partial_name)
+    def split_archive(archive, partial_name, segment_size)
+      indexes = Zip::File.split(archive, segment_size, true, partial_name)
       archives = Array.new(indexes) do |index|
         File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', index + 1)}")
       end

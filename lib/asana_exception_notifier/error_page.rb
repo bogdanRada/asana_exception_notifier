@@ -85,19 +85,27 @@ module AsanaExceptionNotifier
       end
       FileUtils.rm_rf([@tempfile.path])
       logger.debug "[AsanaExceptionNotifier] Created Archive  #{archive} from #{zf.name}, size = #{zf.size}, compressed size = #{zf.compressed_size}"
-      split_archive(archive, "part_#{temfile_info[:filename]}")
+      split_archive(archive, "part_#{temfile_info[:filename]}", 512)
     end
 
-    def upload_log_file_to_task(api_key, message)
-      return if message.blank?
+    def multi_manager
+      @multi_manager ||= EventMachine::MultiRequest.new
+    end
+
+    def upload_log_file_to_task(api_key, message = {})
       create_tempfile
       archives = compress_tempfile
       archives.each do |zip|
         body = multipart_file_upload_details(zip)
         AsanaExceptionNotifier::Request.new(api_key,
-                                            "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
+                                            "https://app.asana.com/api/1.0/tasks/#{message.fetch('id', 85861829362988)}/attachments",
                                             'http_method' => 'post',
-                                            'em_request' => body
+                                            'em_request' => body,
+                                            'multi_request' => true,
+                                            'request_name' => zip,
+                                            'request_final' => archives.last == zip,
+                                            'action' => 'upload',
+                                            'multi_manager' => multi_manager
                                            ) do |_http_response|
           FileUtils.rm_rf([zip])
         end

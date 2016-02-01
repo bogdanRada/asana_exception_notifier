@@ -65,10 +65,9 @@ module AsanaExceptionNotifier
       # @param [Lambda] callback The callback that will be called if the response is blank
       # @param [Proc] block If the response is not blank, the block will receive the response
       # @return [void]
-      def fetch_data(url, options = {}, &block)
+      def fetch_data(http, options = {}, &block)
         options = options.symbolize_keys
-        http = em_request(url, options)
-        if options[:multi]
+        if options[:multi_request] && multi_manager.present?
           multi_fetch_data(http, options, &block)
         else
           register_error_callback(http)
@@ -76,11 +75,12 @@ module AsanaExceptionNotifier
         end
       end
 
+
       def multi_fetch_data(http, options = {}, &block)
-        @multi_manager ||= EventMachine::MultiRequest.new
-        @multi_manager.add options[:request_name], http
-        register_error_callback(@multi_manager)
-        register_success_callback(@multi_manager, options, &block)
+        multi_manager.add options[:request_name], http
+        return unless options[:request_final]
+        register_error_callback(multi_manager)
+        register_success_callback(multi_manager, options, &block)
       end
 
       # Method that is used to register a success callback to a http object

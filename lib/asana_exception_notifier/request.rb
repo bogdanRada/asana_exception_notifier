@@ -12,10 +12,15 @@ module AsanaExceptionNotifier
     def initialize(api_key, url, options, &callback)
       @api_key = api_key
       @url = url
+
       @options = options.symbolize_keys
 
       self.callback(&callback)
       run_http_request
+    end
+
+    def multi_manager
+      @multi_manager ||= options.fetch(:multi_manager, nil)
     end
 
     def em_request_options
@@ -26,7 +31,6 @@ module AsanaExceptionNotifier
         ),
         body: request[:body]
       }
-      # raise params.inspect
       super.merge(params)
     end
 
@@ -39,29 +43,36 @@ module AsanaExceptionNotifier
     end
 
     def send_request_and_rescue
-      send_request
+      http = em_request(@url, @options)
+      send_request(http)
     rescue => exception
       log_exception(exception)
       fail(result: { message: exception })
     end
 
-    def send_request
-      fetch_data(@url, @options) do |http_response|
-        data = JSON.parse(http_response)
-        message = data.fetch('data', {})
-        callback_task_creation(data['errors'], message, action: 'creation')
+    def send_request(http)
+      fetch_data(http, @options) do |http_response|
+        handle_multi_response(http, http_response)
       end
     end
 
-    def callback_task_creation(errors, message, options)
-      action = options.fetch(:action, '')
-      if errors.present?
-        logger.debug("[AsanaExceptionNotifier]: Task #{action} failed with error: #{errors}")
-        fail(errors)
+    def handle_multi_response(http, http_response)
+      logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{http_response}")
+      @multi_manager.requests.delete(http) if @multi_manager.present?
+      if http_response.is_a?(Array)
+        http_response.each { |response| handle_response(response) }
       else
-        logger.debug("[AsanaExceptionNotifier]: Task #{action} successfully with: #{message.slice('id', 'name')}")
-        succeed(message)
+        handle_response(http_response)
       end
+    end
+
+    def handle_response(http_response)
+      data = JSON.parse(http_response)
+      callback_task_creation(data)
+    end
+
+    def callback_task_creation(data)
+      data.fetch('errors', {}).present? ? fail(data) : succeed(data)
     end
   end
 end
