@@ -16,7 +16,10 @@ module AsanaExceptionNotifier
       @options = options.symbolize_keys
 
       self.callback(&callback)
-      run_http_request
+
+      execute_with_rescue do
+        run_http_request
+      end
     end
 
     def multi_manager
@@ -36,9 +39,8 @@ module AsanaExceptionNotifier
 
     def run_http_request
       ensure_eventmachine_running do
-        Thread.new do
-          send_request_and_rescue
-        end
+        EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
+        send_request_and_rescue
       end
     end
 

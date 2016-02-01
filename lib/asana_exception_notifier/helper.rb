@@ -69,7 +69,7 @@ module AsanaExceptionNotifier
 
     def ensure_eventmachine_running(&block)
       register_em_error_handler
-      run_eventmachine(&block)
+      run_em_reactor(&block)
     end
 
     def register_em_error_handler
@@ -84,10 +84,22 @@ module AsanaExceptionNotifier
       logger.debug exception.backtrace.join("\n")
     end
 
-    def run_eventmachine(&_block)
+    def execute_with_rescue
+      yield if block_given?
+    rescue Interrupt
+      rescue_interrupt
+    rescue => error
+      log_exception(error)
+    end
+
+    def rescue_interrupt
+      `stty icanon echo`
+      puts "\n Command was cancelled due to an Interrupt error."
+    end
+
+    def run_em_reactor
       EM.run do
-        EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
-        yield
+        yield if block_given?
       end
     end
 

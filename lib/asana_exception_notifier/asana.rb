@@ -12,15 +12,19 @@ module ExceptionNotifier
     attr_reader :initial_options, :exception
 
     def initialize(options)
-      super
-      @initial_options = options.symbolize_keys
-      options = @initial_options.reject { |_key, value| value.blank? }
-      parse_options(options)
+      execute_with_rescue do
+        super
+        @initial_options = options.symbolize_keys
+        options = @initial_options.reject { |_key, value| value.blank? }
+        parse_options(options)
+      end
     end
 
     def call(exception, options = {})
-      error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
-      create_asana_task(error_page) if active?
+      execute_with_rescue do
+        error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
+        create_asana_task(error_page) if active?
+      end
     end
 
     def active?

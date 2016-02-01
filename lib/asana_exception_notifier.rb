@@ -1,5 +1,3 @@
-$stdout.sync = true if $stdout.isatty
-$stdin.sync = true if $stdin.isatty
 require 'rubygems'
 require 'bundler'
 require 'bundler/setup'

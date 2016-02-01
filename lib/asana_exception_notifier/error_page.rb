@@ -13,8 +13,7 @@ module AsanaExceptionNotifier
       @template_details = setup_template_details
       @env = (@options[:env] || {}).stringify_keys
       @request = (defined?(ActionDispatch::Request) ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env))
-      @template_params = parse_exception_options
-      @content = render_template
+      @timestamp = Time.now
     end
 
     def setup_template_details
@@ -32,8 +31,8 @@ module AsanaExceptionNotifier
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         fault_data: exception_data,
         request_data: setup_env_params,
-        timestamp: Time.now,
         uname: Sys::Uname.uname.to_s,
+        timestamp: @timestamp,
         pwd:  File.expand_path($PROGRAM_NAME)
       }.merge(@options).reject { |_key, value| value.blank? }
     end
@@ -60,13 +59,14 @@ module AsanaExceptionNotifier
     end
 
     def render_template(template = nil)
+      template_params = parse_exception_options
       current_template = template.present? ? template : @template_path
-      Tilt.new(current_template).render(self, @template_params.stringify_keys)
+      Tilt.new(current_template).render(self, template_params.stringify_keys)
     end
 
     def create_tempfile
       tempfile = Tempfile.new([SecureRandom.uuid, ".#{@template_details[:template_extension]}"], encoding: 'utf-8')
-      tempfile.write(@content)
+      tempfile.write(render_template)
       tempfile.close
       details = tempfile_details(tempfile)
       [details[:filename], details[:path]]
@@ -75,7 +75,7 @@ module AsanaExceptionNotifier
     def fetch_archives
       filename, path = create_tempfile
       archive = compress_files(File.dirname(path), filename, [path])
-      #FileUtils.rm_rf([path])
+      # FileUtils.rm_rf([path])
       split_archive(archive, "part_#{filename}", 512)
     end
 
