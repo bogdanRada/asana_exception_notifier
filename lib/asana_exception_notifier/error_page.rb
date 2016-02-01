@@ -21,8 +21,7 @@ module AsanaExceptionNotifier
     def setup_template_details
       template_extension = @template_path.scan(/\.(\w+)\.?(.*)?/)[0][0]
       get_extension_and_name_from_file(@template_path).merge(
-        template_extension: template_extension,
-        mime: Rack::Mime::MIME_TYPES[".#{template_extension}"]
+        template_extension: template_extension
       )
     end
 
@@ -86,41 +85,49 @@ module AsanaExceptionNotifier
       end
       zf = Zip::File.new(archive)
       zf.each_with_index do |entry, index|
-        logger.debug "entry #{entry.class} #{index} is #{entry.name}, size = #{entry.size}, compressed size = #{entry.compressed_size}"
+        logger.debug "[AsanaExceptionNotifier] Created Archive #{index} is #{entry.name}, size = #{entry.size}, compressed size = #{entry.compressed_size}"
       end
-      FileUtils.rm_rf([@tempfile.path])
-      # Zip::File.split(archive, 102_400, false) do |part_count, part_index, chunk_bytes, segment_bytes|
-      #   logger.debug "#{part_index} of #{part_count} part splitting: #{(chunk_bytes.to_f / segment_bytes.to_f * 100).to_i}%"
-      # end
-      [archive]
+      archives = []
+      partial_name = "part_#{temfile_info[:filename]}"
+      Zip::File.split(archive, 512, false, partial_name) do |part_count, part_index, chunk_bytes, segment_bytes|
+        logger.debug "[AsanaExceptionNotifier] Archive #{archive} is splitting #{part_index} of #{part_count} part #{(chunk_bytes.to_f / segment_bytes.to_f * 100).to_i}%"
+        archives << File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', part_index)}")
+      end
+      archives.blank? ? [archive] : archives
+    end
+
+    def upload_log_file_to_task(api_key, message)
+      return if message.blank?
+      create_tempfile
+      archives = compress_tempfile
+      archives.each do |zip|
+        body = multipart_file_upload_details(zip)
+        AsanaExceptionNotifier::Request.new(api_key,
+                                            "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
+                                            'http_method' => 'post',
+                                            'em_request' => body,
+                                            'multi' => true,
+                                            'request_name' => zip
+                                           ) do |_http_response|
+          FileUtils.rm_rf([zip])
+        end
+      end
     end
 
     def rack_session
-      @env['rack.session']
+      @env.fetch('rack.session', {})
     end
 
     def rails_params
-      @env['action_dispatch.request.parameters']
+      @env.fetch('action_dispatch.request.parameters', {})
     end
 
     def uri_prefix
-      @env['SCRIPT_NAME'] || ''
+      @env.fetch('SCRIPT_NAME', '')
     end
 
     def request_path
-      @env['PATH_INFO']
-    end
-
-    def text_heading(char, str)
-      str + "\n" + char * str.size
-    end
-
-    def inspect_value(obj)
-      CGI.escapeHTML(obj.inspect)
-    rescue NoMethodError
-      "<span class='unsupported'>(object doesn't support inspect)</span>"
-    rescue
-      "<span class='unsupported'>(exception was raised in inspect)</span>"
+      @env.fetch('PATH_INFO', '')
     end
   end
 end

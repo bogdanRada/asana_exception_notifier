@@ -6,7 +6,7 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
   Request Body:
   ===================================================================
 
-  <%= body.slice(0, 20).gsub(/^/, '  ') %>
+  <%= body.gsub(/^/, '  ') %>
 <% end %>
 
 <% if exception.respond_to?(:backtrace)  %>
@@ -15,7 +15,34 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
   Backtrace:
   ===================================================================
 
-  <%= exception.backtrace.slice(0, 10).join("\n  ") %>
+  <%= exception.backtrace.join("\n  ") %>
+<% end %>
+<% end %>
+<% if exception.respond_to?(:backtrace)  %>
+<% if exception.backtrace.present?  %>
+  ===================================================================
+  Backtrace:
+  ===================================================================
+
+  <%= exception.backtrace.join("\n  ") %>
+<% end %>
+<% end %>
+<% if exception.respond_to?(:backtrace)  %>
+<% if exception.backtrace.present?  %>
+  ===================================================================
+  Backtrace:
+  ===================================================================
+
+  <%= exception.backtrace.join("\n  ") %>
+<% end %>
+<% end %>
+<% if exception.respond_to?(:backtrace)  %>
+<% if exception.backtrace.present?  %>
+  ===================================================================
+  Backtrace:
+  ===================================================================
+
+  <%= exception.backtrace.join("\n  ") %>
 <% end %>
 <% end %>
   ===================================================================
@@ -28,7 +55,7 @@ Uname:                   <%= Sys::Uname.uname.to_s %>
 Server:                  <%= server %>
 Error time:	             <%= timestamp %>
 <% if request.present? %>
-Request URI:             <%= request[:url] %>
+Request URI:             <%= request_path %>
 Referer:	               <%= referrer %>
 User Agent:	             <%= user_agent %>
 <% end %>

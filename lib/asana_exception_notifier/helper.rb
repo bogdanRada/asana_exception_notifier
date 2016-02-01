@@ -69,9 +69,14 @@ module AsanaExceptionNotifier
 
     def register_em_error_handler
       EM.error_handler do |error|
-        logger.debug "\n\n [AsanaExceptionNotifier]: Error during event loop : #{error.inspect}"
-        logger.debug "\n\n [AsanaExceptionNotifier]: #{error.backtrace.join("\n")}"
+        logger.debug '[AsanaExceptionNotifier]: Error during event loop :'
+        logger.debug "[AsanaExceptionNotifier]: #{log_exception(error)}"
       end
+    end
+
+    def log_exception(exception)
+      logger.debug exception.inspect
+      logger.debug exception.backtrace.join("\n")
     end
 
     def run_eventmachine(&_block)

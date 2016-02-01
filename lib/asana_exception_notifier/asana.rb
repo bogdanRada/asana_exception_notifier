@@ -51,30 +51,14 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(error_page)
-      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+      api_key = @default_options.fetch(:asana_api_key, nil)
+      AsanaExceptionNotifier::Request.new(api_key,
                                           'https://app.asana.com/api/1.0/tasks',
                                           'http_method' => 'post',
                                           'em_request' => { body: build_request_options(error_page) }
                                          ) do |http_response|
-        error_page.create_tempfile
-        archives = error_page.compress_tempfile
-        upload_log_file_to_task(http_response, archives)
+        error_page.upload_log_file_to_task(api_key, http_response)
       end
     end
-
-    def upload_log_file_to_task(message, zip_files)
-      return if message.blank?
-      zip_files.each do |zip|
-        body = multipart_file_upload_details(zip)
-        AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-                                            "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
-                                            'http_method' => 'post',
-                                            'em_request' => body
-                                           ) do |_http_response|
-            FileUtils.rm_rf([zip])
-        end
-      end
-    end
-
   end
 end

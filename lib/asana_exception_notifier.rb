@@ -28,11 +28,5 @@ require 'tempfile'
 require 'English'
 require 'pathname'
 
-Zip.setup do |c|
-  c.on_exists_proc = true
-  c.continue_on_exists_proc = true
-  c.unicode_names = false
-  c.default_compression = Zlib::BEST_COMPRESSION
-end
-
+Gem.find_files('asana_exception_notifier/initializers/**/*.rb').each { |path| require path }
 Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }

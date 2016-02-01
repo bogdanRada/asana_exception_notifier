@@ -33,20 +33,26 @@ module AsanaExceptionNotifier
     def run_http_request
       ensure_eventmachine_running do
         Thread.new do
-          begin
-            send_request
-          rescue => exception
-            logger.debug exception.inspect
-            logger.debug exception.backtrace
-            request.fail(result: { message: exception })
-          end
+          send_request_and_rescue
         end
       end
     end
 
+    def send_request_and_rescue
+      send_request
+    rescue => exception
+      log_exception(exception)
+      fail(result: { message: exception })
+    end
+
+    def parse_http_response(http_response)
+      response = http_response.is_a?(Hash) ? http_response : JSON.parse(http_response)
+      %w(data errors).any? { |key| response.keys.include?(key) }.present? ? response : JSON.parse(response.values.first.response)
+    end
+
     def send_request
       fetch_data(@url, @options) do |http_response|
-        data = JSON.parse(http_response)
+        data =  parse_http_response(http_response)
         message = data.fetch('data', {})
         callback_task_creation(data['errors'], message, action: 'creation')
       end
@@ -55,10 +61,10 @@ module AsanaExceptionNotifier
     def callback_task_creation(errors, message, options)
       action = options.fetch(:action, '')
       if errors.present?
-        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{action} failed with error: #{errors}")
-        fail(message)
+        logger.debug("[AsanaExceptionNotifier]: Task #{action} failed with error: #{errors}")
+        fail(errors)
       else
-        logger.debug("\n\n[AsanaExceptionNotifier]: Task #{action} successfully with: #{message.fetch('id', message)}")
+        logger.debug("[AsanaExceptionNotifier]: Task #{action} successfully with: #{message.slice('id', 'name')}")
         succeed(message)
       end
     end

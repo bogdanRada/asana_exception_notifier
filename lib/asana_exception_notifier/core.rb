@@ -10,7 +10,7 @@ module AsanaExceptionNotifier
     # @!attribute base_url
     #   @return [String] THe base_url of the API
     module Core
-      include Helper
+      include AsanaExceptionNotifier::Helper
 
       attr_reader :params
 
@@ -67,9 +67,21 @@ module AsanaExceptionNotifier
       # @return [void]
       def fetch_data(url, options = {}, &block)
         options = options.symbolize_keys
+        if options[:multi]
+          multi_fetch_data(url, options, &block)
+        else
+          http = em_request(url, options)
+          register_error_callback(http)
+          register_success_callback(http, options, &block)
+        end
+      end
+
+      def multi_fetch_data(url, options = {}, &block)
+        @multi_manager ||= EventMachine::MultiRequest.new
         http = em_request(url, options)
-        register_error_callback(http)
-        register_success_callback(http, options, &block)
+        @multi_manager.add options[:request_name], http
+        register_error_callback(@multi_manager)
+        register_success_callback(@multi_manager, options, &block)
       end
 
       # Method that is used to register a success callback to a http object
@@ -82,7 +94,7 @@ module AsanaExceptionNotifier
       # @return [void]
       def register_success_callback(http, options)
         http.callback do
-          res = callback_before_success(http.response)
+          res = callback_before_success(http.respond_to?(:response) ? http.response : http.responses[:callback])
           callback = options.fetch('callback', nil)
           block_given? ? yield(res) : callback.call(res)
         end
@@ -110,7 +122,7 @@ module AsanaExceptionNotifier
       # @param [Object] error The error that was raised by the HTTP request
       # @return [void]
       def callback_error(error)
-        logger.debug "\n\n[AsanaExceptionNotifier] Error during fetching data  : #{error.inspect}"
+        log_exception(error)
       end
     end
   end
