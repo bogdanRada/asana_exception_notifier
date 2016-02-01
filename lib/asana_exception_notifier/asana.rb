@@ -63,6 +63,7 @@ module ExceptionNotifier
 
     def upload_log_file_to_task(error_page, message)
       archives = error_page.fetch_archives
+      logger.debug(archives)
       archives.each do |zip|
         upload_archive(archives, zip, message)
       end
