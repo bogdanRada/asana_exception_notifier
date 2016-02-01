@@ -97,9 +97,7 @@ module AsanaExceptionNotifier
         AsanaExceptionNotifier::Request.new(api_key,
                                             "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
                                             'http_method' => 'post',
-                                            'em_request' => body,
-                                            'multi' => true,
-                                            'request_name' => zip
+                                            'em_request' => body
                                            ) do |_http_response|
           FileUtils.rm_rf([zip])
         end
