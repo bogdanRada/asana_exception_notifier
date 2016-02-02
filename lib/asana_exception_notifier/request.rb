@@ -7,19 +7,20 @@ module AsanaExceptionNotifier
     include AsanaExceptionNotifier::Helper
     include EM::Deferrable
 
-    attr_reader :url, :options, :api_key
+    attr_reader :url, :options, :api_key, :request_name, :request_final, :action
 
     def initialize(api_key, url, options, &callback)
       @api_key = api_key
       @url = url
 
       @options = options.symbolize_keys
+      @request_name = @options.fetch(:request_name, '')
+      @request_final = @options.fetch(:request_final, false)
+      @action = @options.fetch(:action, '')
 
       self.callback(&callback)
 
-      execute_with_rescue do
-        run_http_request
-      end
+      send_request_and_rescue
     end
 
     def multi_manager
@@ -35,13 +36,6 @@ module AsanaExceptionNotifier
         body: request[:body]
       }
       super(params)
-    end
-
-    def run_http_request
-      ensure_eventmachine_running do
-        EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
-        send_request_and_rescue
-      end
     end
 
     def send_request_and_rescue
@@ -68,17 +62,18 @@ module AsanaExceptionNotifier
     end
 
     def handle_multi_response(http_response)
+      @action = "#{@request_namae} #{@action}"
       get_multi_request_values(http_response, :callback).each { |response| handle_response(response) }
       get_multi_request_values(http_response, :errback).each { |response| handle_error(response) }
     end
 
     def handle_error(error)
-      logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{error}")
+      logger.debug("[AsanaExceptionNotifier]: Task #{@action} returned:  #{error}")
       fail(error)
     end
 
     def handle_response(http_response)
-      logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{http_response}")
+      logger.debug("[AsanaExceptionNotifier]: Task #{@action} returned:  #{http_response}")
       data = JSON.parse(http_response)
       callback_task_creation(data)
     end

@@ -22,11 +22,10 @@ module ExceptionNotifier
 
     def call(exception, options = {})
       execute_with_rescue do
-        Thread.abort_on_exception = true
-        Thread.new do
-          error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
+        error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
+        ensure_eventmachine_running do
           create_asana_task(error_page) if active?
-        end.join
+        end
       end
     end
 

@@ -68,6 +68,7 @@ module AsanaExceptionNotifier
     end
 
     def ensure_eventmachine_running(&block)
+      Thread.abort_on_exception = true
       register_em_error_handler
       run_em_reactor(&block)
     end
@@ -103,6 +104,7 @@ module AsanaExceptionNotifier
 
     def run_em_reactor
       EM.run do
+        EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
         Thread.new do
           EM.defer proc { yield if block_given? }
         end
