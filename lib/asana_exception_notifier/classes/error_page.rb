@@ -97,7 +97,7 @@ module AsanaExceptionNotifier
     end
 
     def fieldsets
-      @fieldsets ||= fetch_fieldsets(parse_exception_options)
+      @fieldsets ||= fetch_fieldsets(parse_exception_options).except(:env)
     end
 
     def render_template(template = nil)
