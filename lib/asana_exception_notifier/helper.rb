@@ -21,8 +21,7 @@ module AsanaExceptionNotifier
         tags: [],
         notes: '',
         name: '',
-        template_path: default_template_path,
-        multi_request: nil
+        template_path: default_template_path
       }
     end
 
