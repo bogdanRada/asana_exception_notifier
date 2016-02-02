@@ -34,7 +34,7 @@ module AsanaExceptionNotifier
         ),
         body: request[:body]
       }
-      super.merge(params)
+      super(params)
     end
 
     def run_http_request

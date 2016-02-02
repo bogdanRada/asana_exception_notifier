@@ -4,9 +4,16 @@ require 'bundler/setup'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 
+require 'exception_notifier'
+require 'exception_notification/rack'
+if defined?(Rails)
+  require 'exception_notification/rails'
+end
+require 'exception_notification'
+
 require 'em-http-request'
 require 'eventmachine'
-require 'exception_notification'
+
 require 'multipart_body'
 require 'rack'
 require 'zip'

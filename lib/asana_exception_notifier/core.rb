@@ -32,13 +32,15 @@ module AsanaExceptionNotifier
       # Returns the request options used for connecting to API's
       #
       # @return [Hash] Returns the request options used for connecting to API's
-      def em_request_options
+      def em_request_options(params = {})
         {
           redirects: 5,              # follow 3XX redirects up to depth 5
           keepalive: true,           # enable keep-alive (don't send Connection:close header)
-          head: {
-            'ACCEPT' => '*/*'
-          }
+          head: (params[:head] || {}).merge(
+            'ACCEPT' => '*/*',
+            'Connection' => 'keep-alive'
+          ),
+          body: (params[:body] || {})
         }
       end
 

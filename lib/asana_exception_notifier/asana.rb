@@ -34,7 +34,7 @@ module ExceptionNotifier
       @default_options.fetch(:asana_api_key, nil).present? && @default_options.fetch(:workspace, nil).present?
     end
 
-    private
+  private
 
     def parse_options(options)
       options = options.symbolize_keys.reject { |key, _value| !permitted_options.key?(key) }
@@ -48,9 +48,9 @@ module ExceptionNotifier
 
     def build_request_options(error_page)
       @default_options.except(:asana_api_key, :template_path).merge(
-      name: @default_options.fetch(:name, nil) || "[AsanaExceptionNotifier] #{error_page.exception_data[:message]}",
-      notes:  @default_options.fetch(:notes, nil) || error_page.render_template(File.join(template_dir, 'asana_exception_notifier.text.erb')),
-      workspace: @default_options.fetch(:workspace, nil).to_i
+        name: @default_options.fetch(:name, nil) || "[AsanaExceptionNotifier] #{error_page.exception_data[:message]}",
+        notes:  @default_options.fetch(:notes, nil) || error_page.render_template(File.join(template_dir, 'asana_exception_notifier.text.erb')),
+        workspace: @default_options.fetch(:workspace, nil).to_i
       ).symbolize_keys!
     end
 
@@ -58,38 +58,43 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(error_page)
-      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-      'https://app.asana.com/api/1.0/tasks',
-      'http_method' => 'post',
-      'em_request' => { body: build_request_options(error_page) },
-      'action' => 'creation'
-      ) do |http_response|
-        upload_log_file_to_task(error_page, http_response.fetch('data', {}))
-      end
+      Thread.new do
+        AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+                                            'https://app.asana.com/api/1.0/tasks',
+                                            'http_method' => 'post',
+                                            'em_request' => { body: build_request_options(error_page) },
+                                            'action' => 'creation'
+                                           ) do |http_response|
+          upload_log_file_to_task(error_page, http_response.fetch('data', {}))
+        end
+      end.join
     end
 
     def upload_log_file_to_task(error_page, message)
       archives = error_page.fetch_archives
       logger.debug(archives)
-      archives.each do |zip|
+      threads = archives.map do |zip|
         upload_archive(archives, zip, message)
       end
+      threads.each_slice(2).to_a.map(&:join)
     end
 
     def upload_archive(archives, zip, message)
       return if message.blank?
       body = multipart_file_upload_details(zip)
-      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-      "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
-      'http_method' => 'post',
-      'em_request' => body,
-      'multi_request' => @default_options.fetch(:multi_request, false) || false,
-      'request_name' => zip,
-      'request_final' => archives.last == zip,
-      'action' => 'upload',
-      'multi_manager' => multi_request_manager
-      ) do |_http_response|
-        FileUtils.rm_rf([zip])
+      Thread.new do
+        AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+                                            "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
+                                            'http_method' => 'post',
+                                            'em_request' => body,
+                                            'multi_request' => @default_options.fetch(:multi_request, false) || false,
+                                            'request_name' => zip,
+                                            'request_final' => archives.last == zip,
+                                            'action' => 'upload',
+                                            'multi_manager' => multi_request_manager
+                                           ) do |_http_response|
+          FileUtils.rm_rf([zip])
+        end
       end
     end
   end
