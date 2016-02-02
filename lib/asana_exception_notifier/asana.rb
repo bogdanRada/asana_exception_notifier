@@ -68,22 +68,22 @@ module ExceptionNotifier
       end
     end
 
-    def upload_log_file_to_task(error_page, message)
+    def upload_log_file_to_task(error_page, task_data)
       Thread.new do
         archives = error_page.fetch_archives
         archives.each do |zip|
           ensure_eventmachine_running do
-            upload_archive(zip, message)
+            upload_archive(zip, task_data)
           end
         end
       end
     end
 
-    def upload_archive(zip, message)
-      return if message.blank?
+    def upload_archive(zip, task_data)
+      return if task_data.blank?
       body = multipart_file_upload_details(zip)
       AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-                                          "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
+                                          "https://app.asana.com/api/1.0/tasks/#{task_data['id']}/attachments",
                                           'http_method' => 'post',
                                           'em_request' => body,
                                           'request_name' => zip,
