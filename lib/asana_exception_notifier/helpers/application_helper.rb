@@ -131,7 +131,7 @@ module AsanaExceptionNotifier
     def get_hash_rows(hash, rows = [], prefix = '')
       hash.each do |key, value|
         if value.is_a?(Hash)
-          get_hash_rows(value, rows , key) if value.present?
+          get_hash_rows(value, rows, key)
         else
           rows.push(["#{prefix}#{key}".inspect, escape(value.inspect)])
         end
@@ -142,29 +142,39 @@ module AsanaExceptionNotifier
     def link_helper(link)
       <<-LINK
       <a href="javascript:void(0)" onclick="AjaxExceptionNotifier.hideAllAndToggle('#{link.downcase}')">#{link.camelize}</a>
-       LINK
-     end
+      LINK
+    end
 
     def escape(text)
       text.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')
+    end
+
+    def set_fieldset_key(links, prefix)
+      links[prefix] ||= {}
+      prefix
+    end
+
+    def parse_fieldset_value(options)
+      value = options[:value]
+      value.is_a?(Hash) ? value.reject! { |_new_key, new_value| new_value.is_a?(Hash) } : value
     end
 
     # Gets a bidimensional array and create a table.
     # The first array is used as label.
     #
     def mount_table(array, options = {})
+      return '' if array.blank?
       header = array.shift
-      return '' if array.empty?
 
-      header = header.map { |i| escape(i.to_s.humanize) }
-      rows = array.map { |i| "<tr><td>#{i.join('</td><td>')}</td></tr>" }
+      header = header.map { |name| escape(name.to_s.humanize) }
+      rows = array.map { |name| "<tr><td>#{name.join('</td><td>')}</td></tr>" }
 
       <<-TABLE
        <table #{hash_to_html_attributes(options)}>
          <thead><tr><th>#{header.join('</th><th>')}</th></tr></thead>
          <tbody>#{rows.join}</tbody>
        </table>
-       TABLE
+      TABLE
     end
 
     # Mount table for hash, using name and value and adding a name_value class
