@@ -57,23 +57,22 @@ module AsanaExceptionNotifier
       if http_response.is_a?(Hash) && %i(callback errback).all? { |key| http_response.symbolize_keys.keys.include?(key) }
         handle_multi_response(http_response)
       else
-        handle_response(http_response)
+        handle_response(http_response, @options.fetch(:request_name, ''))
       end
     end
 
     def handle_multi_response(http_response)
-      @action = "#{@request_namae} #{@action}"
-      get_multi_request_values(http_response, :callback).each { |response| handle_response(response) }
-      get_multi_request_values(http_response, :errback).each { |response| handle_error(response) }
+      get_multi_request_values(http_response, :callback).each { |key, response| handle_response(response, key) }
+      get_multi_request_values(http_response, :errback).each { |key, response| handle_error(response, key) }
     end
 
-    def handle_error(error)
-      logger.debug("[AsanaExceptionNotifier]: Task #{@action} returned:  #{error}")
+    def handle_error(error, key = '')
+      logger.debug("[AsanaExceptionNotifier]: Task #{key} #{@action} returned:  #{error}")
       fail(error)
     end
 
-    def handle_response(http_response)
-      logger.debug("[AsanaExceptionNotifier]: Task #{@action} returned:  #{http_response}")
+    def handle_response(http_response, key = '')
+      logger.debug("[AsanaExceptionNotifier]: Task #{key} #{@action} returned:  #{http_response}")
       data = JSON.parse(http_response)
       callback_task_creation(data)
     end
