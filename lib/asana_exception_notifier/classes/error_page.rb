@@ -33,7 +33,8 @@ module AsanaExceptionNotifier
         request_data: setup_env_params,
         uname: Sys::Uname.uname.to_s,
         timestamp: @timestamp,
-        pwd:  File.expand_path($PROGRAM_NAME)
+        pwd:  File.expand_path($PROGRAM_NAME),
+        ip_info: fetch_client_ips
       }.merge(@options).reject { |_key, value| value.blank? }
     end
 
@@ -81,6 +82,29 @@ module AsanaExceptionNotifier
 
     def rack_session
       @env.fetch('rack.session', {})
+    end
+
+    def fetch_client_ips
+      {
+        ip: request_proxied? ?  http_x_forwarded_for : remote_ip,
+        proxy: request_proxied? ? remote_addr : ''
+      }
+    end
+
+    def request_proxied?
+      http_x_forwarded_for.present?
+    end
+
+    def remote_ip
+      @env.fetch('HTTP_CLIENT_IP', '') || @env.fetch('REMOTE_ADDR', '')
+    end
+
+    def http_x_forwarded_for
+      @env.fetch('HTTP_X_FORWARDED_FOR', '')
+    end
+
+    def remote_addr
+      @env.fetch('REMOTE_ADDR', '')
     end
 
     def rails_params

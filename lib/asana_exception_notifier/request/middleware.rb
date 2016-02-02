@@ -14,9 +14,9 @@ module AsanaExceptionNotifier
       def request(client, head, body)
         puts "############## HTTP REQUEST  #####################\n"
         puts JSON.pretty_generate(
-        headers: head,
-        url: client.req.uri,
-        body: force_utf8_encoding(body.to_s.inspect)
+          headers: head,
+          url: client.req.uri,
+          body: force_utf8_encoding(body.to_s.inspect)
         )
         [head, body]
       end
@@ -30,9 +30,9 @@ module AsanaExceptionNotifier
         puts "############## HTTP RESPONSE  #####################\n"
         headers = resp.response_header
         puts JSON.pretty_generate(
-        headers: headers,
-        status: headers.status,
-        body: force_utf8_encoding(resp.response.to_s.inspect)
+          headers: headers,
+          status: headers.status,
+          body: force_utf8_encoding(resp.response.to_s.inspect)
         )
         resp
       end

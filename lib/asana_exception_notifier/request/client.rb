@@ -30,7 +30,7 @@ module AsanaExceptionNotifier
         request = setup_em_options(@options).delete(:em_request)
         params = {
           head: (request[:head] || {}).merge(
-          'Authorization' => "Bearer #{@api_key}"
+            'Authorization' => "Bearer #{@api_key}"
           ),
           body: request[:body]
         }

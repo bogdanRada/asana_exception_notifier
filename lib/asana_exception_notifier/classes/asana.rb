@@ -60,36 +60,35 @@ module ExceptionNotifier
     # @return [void]
     def create_asana_task(error_page)
       AsanaExceptionNotifier::Request::Client.new(@default_options.fetch(:asana_api_key, nil),
-                                          'https://app.asana.com/api/1.0/tasks',
-                                          'http_method' => 'post',
-                                          'em_request' => { body: build_request_options(error_page) },
-                                          'action' => 'creation'
-                                         ) do |http_response|
-        EM.defer proc { upload_log_file_to_task(error_page, http_response.fetch('data', {})) }
-      end
-    end
-
-    def upload_log_file_to_task(error_page, task_data)
-      Thread.new do
-        archives = error_page.fetch_archives
-        archives.each do |zip|
-          ensure_eventmachine_running do
-            upload_archive(zip, task_data)
-          end
+                                                  'https://app.asana.com/api/1.0/tasks',
+                                                  'http_method' => 'post',
+                                                  'em_request' => { body: build_request_options(error_page) },
+                                                  'action' => 'creation'
+                                                 ) do |http_response|
+        ensure_eventmachine_running do
+          upload_log_file_to_task(error_page, http_response.fetch('data', {}))
         end
       end
     end
 
-    def upload_archive(zip, task_data)
+    def upload_log_file_to_task(error_page, task_data)
+      archives = error_page.fetch_archives
+      archives.each do |zip|
+        upload_archive(archives, zip, task_data)
+      end
+    end
+
+    def upload_archive(archives, zip, task_data)
       return if task_data.blank?
       body = multipart_file_upload_details(zip)
       AsanaExceptionNotifier::Request::Client.new(@default_options.fetch(:asana_api_key, nil),
-                                          "https://app.asana.com/api/1.0/tasks/#{task_data['id']}/attachments",
-                                          'http_method' => 'post',
-                                          'em_request' => body,
-                                          'request_name' => zip,
-                                          'action' => 'upload'
-                                         ) do |_http_response|
+                                                  "https://app.asana.com/api/1.0/tasks/#{task_data['id']}/attachments",
+                                                  'http_method' => 'post',
+                                                  'em_request' => body,
+                                                  'request_name' => zip,
+                                                  'action' => 'upload'
+                                                 ) do |_http_response|
+
         FileUtils.rm_rf([zip])
       end
     end

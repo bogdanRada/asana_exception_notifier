@@ -102,11 +102,11 @@ module AsanaExceptionNotifier
     end
 
     def run_em_reactor
-      EM.run do
-        Thread.new do
+      Thread.new do
+        EM.run do
           EM.defer proc { yield if block_given? }
         end
-      end
+      end.join
     end
 
     def template_dir
