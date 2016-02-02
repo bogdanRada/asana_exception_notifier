@@ -62,6 +62,7 @@ module AsanaExceptionNotifier
     end
 
     def handle_multi_response(http_response)
+      logger.debug('[AsanaExceptionNotifier]: Handling multi responses')
       get_multi_request_values(http_response, :callback).each { |request_name, response| handle_response(response, request_name) }
       get_multi_request_values(http_response, :errback).each { |request_name, response| handle_error(response, request_name) }
     end

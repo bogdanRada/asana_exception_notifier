@@ -104,7 +104,6 @@ module AsanaExceptionNotifier
 
     def run_em_reactor
       EM.run do
-        EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
         Thread.new do
           EM.defer proc { yield if block_given? }
         end
@@ -206,7 +205,7 @@ module AsanaExceptionNotifier
 
     def get_multi_request_values(http_response, key)
       response_method = key.to_s == 'callback' ? 'response' : 'error'
-      http_response[key.to_sym].map { |request_name, request| [request_name, request.send(response_method)] }.reject { |_request_name, value| value.blank? }
+      http_response[key.to_sym].values.map { |request| request.send(response_method) }.reject(&:blank?)
     end
 
     def split_archive(archive, partial_name, segment_size)

@@ -24,6 +24,7 @@ module ExceptionNotifier
       execute_with_rescue do
         error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
         ensure_eventmachine_running do
+          EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
           create_asana_task(error_page) if active?
         end
       end
@@ -63,7 +64,9 @@ module ExceptionNotifier
                                           'em_request' => { body: build_request_options(error_page) },
                                           'action' => 'creation'
                                          ) do |http_response|
-        upload_log_file_to_task(error_page, http_response.fetch('data', {}))
+        Thread.new do
+          upload_log_file_to_task(error_page, http_response.fetch('data', {}))
+        end
       end
     end
 
@@ -83,7 +86,7 @@ module ExceptionNotifier
                                           "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
                                           'http_method' => 'post',
                                           'em_request' => body,
-                                          'multi_request' => @default_options.fetch(:multi_request, true) || true,
+                                          'multi_request' => @default_options.fetch(:multi_request, false) || false,
                                           'request_name' => zip,
                                           'request_final' => archives.last == zip,
                                           'action' => 'upload',
