@@ -73,13 +73,13 @@ module ExceptionNotifier
         archives = error_page.fetch_archives
         archives.each do |zip|
           ensure_eventmachine_running do
-            upload_archive(archives, zip, message)
+            upload_archive(zip, message)
           end
         end
       end
     end
 
-    def upload_archive(archives, zip, message)
+    def upload_archive(zip, message)
       return if message.blank?
       body = multipart_file_upload_details(zip)
       AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
