@@ -88,12 +88,13 @@ module AsanaExceptionNotifier
       logger.debug exception.backtrace.join("\n")
     end
 
-    def execute_with_rescue
+    def execute_with_rescue(options = {})
       yield if block_given?
     rescue Interrupt
       rescue_interrupt
     rescue => error
       log_exception(error)
+      options.fetch(:value, '')
     end
 
     def rescue_interrupt
@@ -130,13 +131,19 @@ module AsanaExceptionNotifier
     def get_hash_rows(hash, rows = [], prefix = '')
       hash.each do |key, value|
         if value.is_a?(Hash)
-          get_hash_rows(value, rows, "#{key}.")
+          get_hash_rows(value, rows , key) if value.present?
         else
           rows.push(["#{prefix}#{key}".inspect, escape(value.inspect)])
         end
       end
       rows
     end
+
+    def link_helper(link)
+      <<-LINK
+      <a href="javascript:void(0)" onclick="AjaxExceptionNotifier.hideAllAndToggle('#{link.downcase}')">#{link.camelize}</a>
+       LINK
+     end
 
     def escape(text)
       text.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')
@@ -164,7 +171,8 @@ module AsanaExceptionNotifier
     # to the generated table.
     #
     def mount_table_for_hash(hash, options = {})
-      rows = get_hash_rows(hash)
+      return if hash.blank?
+      rows = get_hash_rows(hash, options.fetch('rows', []))
       mount_table(rows.unshift(%w(Name Value)), { class: 'name_values' }.merge(options))
     end
 

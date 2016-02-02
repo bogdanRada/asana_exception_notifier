@@ -23,9 +23,9 @@ module ExceptionNotifier
 
     def call(exception, options = {})
       execute_with_rescue do
-        error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
         ensure_eventmachine_running do
           EM::HttpRequest.use AsanaExceptionNotifier::Request::Middleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
+          error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
           create_asana_task(error_page) if active?
         end
       end

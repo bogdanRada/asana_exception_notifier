@@ -2,26 +2,23 @@ A <%= exception.class.to_s %> occured: <%= exception.message.to_s %>
 <% if exception.respond_to?(:backtrace) && exception.backtrace.present? %>
 File:                    <%=   exception.backtrace.slice(0, 1).join("\n  ")  %>
 <% end %>
-<% if ip_info[:ip].present? %>
-IP:                      <%= ip_info[:ip] %>
+<% if request_data.present? %>
+IP:                      <%= request_data[:ip_address] %>
 <% end %>
-<% if ip_info[:proxy].present? %>
-Proxy:                      <%= ip_info[:proxy] %>
+<% if request_data.present? %>
+Session:                      <%= request_data[:session]%>
 <% end %>
-<% if rack_session.present? %>
-Session:                      <%= rack_session%>
+<% if request_data.present? %>
+Request URI:             <%= request_data[:url] %>
 <% end %>
-<% if request_path.present? %>
-Request URI:             <%= request_path %>
-<% end %>
-<% if referrer.present? %>
-Referer:                 <%= referrer %>
+<% if request_data.present? %>
+Referer:                 <%= request_data[:referrer] %>
 <% end %>
 PID:                     <%= process %>
 PWD:                     <%= pwd %>
 Uname:                   <%= uname %>
 Server:                  <%= server %>
 Error time:	             <%= timestamp %>
-<% if user_agent.present? %>
-User Agent:	             <%= user_agent %>
+<% if request_data.present? %>
+User Agent:	             <%= request_data[:user_agent] %>
 <% end %>

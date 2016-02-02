@@ -1,33 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <style type="text/css">
-  #asana_exception_notifier {font-size: 11px; font-family: Consolas, monaco, monospace; font-weight: normal; margin: 2em 0 1em 0; text-align: center; color: #444; line-height: 16px; background: #fff;}
-  #asana_exception_notifier th, #asana_exception_notifier td {color: #444; line-height: 18px;}
-  #asana_exception_notifier a {color: #9b1b1b; font-weight: inherit; text-decoration: none; line-height: 18px;}
-  #asana_exception_notifier table {text-align: left; width: 100%;}
-  #asana_exception_notifier table td {padding: 5px; border-bottom: 1px solid #ccc;}
-  #asana_exception_notifier table td strong {color: #9b1b1b;}
-  #asana_exception_notifier table th {padding: 5px; border-bottom: 1px solid #ccc;}
-  #asana_exception_notifier table tr:nth-child(2n) td {background: #eee;}
-  #asana_exception_notifier table tr:nth-child(2n + 1) td {background: #fff;}
-  #asana_exception_notifier tbody {text-align: left;}
-  #asana_exception_notifier .name_values td {vertical-align: top;}
-  #asana_exception_notifier legend {background-color: #fff;}
-  #asana_exception_notifier fieldset {text-align: left; border: 1px dashed #aaa; padding: 0.5em 1em 1em 1em; margin: 1em 2em; color: #444; background-color: #FFF;}
-  </style>
+<style type="text/css">
+#asana_exception_notifier {font-size: 11px; font-family: Consolas, monaco, monospace; font-weight: normal; margin: 2em 0 1em 0; text-align: center; color: #444; line-height: 16px; background: #fff;}
+#asana_exception_notifier th, #asana_exception_notifier td {color: #444; line-height: 18px;}
+#asana_exception_notifier a {color: #9b1b1b; font-weight: inherit; text-decoration: none; line-height: 18px;}
+#asana_exception_notifier table {text-align: left; width: 100%;}
+#asana_exception_notifier table td {padding: 5px; border-bottom: 1px solid #ccc;}
+#asana_exception_notifier table td strong {color: #9b1b1b;}
+#asana_exception_notifier table th {padding: 5px; border-bottom: 1px solid #ccc;}
+#asana_exception_notifier table tr:nth-child(2n) td {background: #eee;}
+#asana_exception_notifier table tr:nth-child(2n + 1) td {background: #fff;}
+#asana_exception_notifier tbody {text-align: left;}
+#asana_exception_notifier .name_values td {vertical-align: top;}
+#asana_exception_notifier legend {background-color: #fff;}
+#asana_exception_notifier fieldset {text-align: left; border: 1px dashed #aaa; padding: 0.5em 1em 1em 1em; margin: 1em 2em; color: #444; background-color: #FFF;}
+</style>
 </head>
 <body>
   <div style="clear:both"></div>
   <div id="asana_exception_notifier">
     <div id="all">
-      <fieldset>
-        <legend>Env</legend>
+      Show: <%= fieldsets_links %>
+      <% fieldsets.each do |key, value| %>
+      <fieldset class='ajax_exception_notifier_fieldset' id='<%= key %>' style="<%= fieldsets.keys.first != value ? "display:none" : '' %>">
+        <legend>Debug Information for <%= key %></legend>
         <div>
-          <%= mount_table_for_hash(template_params, :summary => "Debug information for environment") %>
+          <%= mount_table_for_hash(value) %>
         </div>
       </fieldset>
+      <% end %>
     </div>
   </div>
+  <script type="text/javascript">
+  var AjaxExceptionNotifier = function() {
+    function hideAll(){
+      fields = document.getElementsByClassName('ajax_exception_notifier_fieldset')
+      for (index = 0; index < fields.length; ++index) {
+        AjaxExceptionNotifier.hide(fields[index]);
+      }
+    }
+    function hideAllAndToggle(id) {
+      var n = note(id);
+      var display = n.style.display;
+      hideAll();
+      // Restore original display to allow toggling
+      n.style.display = display;
+      toggle(id)
+      location.href = '#ajax_exception_notifier';
+    }
+    function note(id) {
+      console.log(id);
+      return (document.getElementById(id));
+    }
+    function toggle(id){
+      var el = note(id);
+      if (el.style.display == 'none') {
+        AjaxExceptionNotifier.show(el);
+      } else {
+        AjaxExceptionNotifier.hide(el);
+      }
+    }
+    function show(element) {
+      element.style.display = 'block'
+    }
+    function hide(element) {
+      element.style.display = 'none'
+    }
+    return {
+      show: show,
+      hide: hide,
+      toggle: toggle,
+      hideAll: hideAll,
+      node: note,
+      hideAllAndToggle: hideAllAndToggle
+    }
+  }();
+  /* Additional Javascript */
+  </script>
 </body>
 </html>
