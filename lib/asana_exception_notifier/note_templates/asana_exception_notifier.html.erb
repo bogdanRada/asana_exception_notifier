@@ -23,8 +23,8 @@
     <div id="all">
       Show: <%= fieldsets_links %>
       <% fieldsets.each do |key, value| %>
-      <fieldset class='ajax_exception_notifier_fieldset' id='<%= key %>' style="<%= fieldsets.keys.first != value ? "display:none" : '' %>">
-        <legend>Debug Information for <%= key %></legend>
+      <fieldset class='ajax_exception_notifier_fieldset' id='<%= key %>' style="<%= fieldsets.keys.first != key ? "display:none" : '' %>">
+        <legend>Debug Information for <%= key.to_s.camelize %></legend>
         <div>
           <%= mount_table_for_hash(value) %>
         </div>
