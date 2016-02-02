@@ -9,6 +9,12 @@ require 'exception_notification/rack'
 if defined?(Rails)
   require 'exception_notification/rails'
 end
+if defined?(Resque)
+  require 'exception_notification/resque'
+end
+if defined?(Sidekiq)
+  require 'exception_notification/sidekiq'
+end
 require 'exception_notification'
 
 require 'em-http-request'
@@ -20,8 +26,8 @@ require 'zip'
 require 'rack/mime'
 require 'sys-uname'
 
-require 'erb'
 require 'tilt'
+require 'erb'
 require 'tilt/erb'
 
 require 'logger'
