@@ -212,7 +212,7 @@ module AsanaExceptionNotifier
       indexes = Zip::File.split(archive, segment_size, true, partial_name)
       archives = Array.new(indexes) do |index|
         File.join(File.dirname(archive), "#{partial_name}.zip.#{format('%03d', index + 1)}")
-      end
+      end if indexes.present?
       archives.blank? ? [archive] : archives
     end
 

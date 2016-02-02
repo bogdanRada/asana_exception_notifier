@@ -76,7 +76,7 @@ module AsanaExceptionNotifier
       filename, path = create_tempfile
       archive = compress_files(File.dirname(path), filename, [path])
       # FileUtils.rm_rf([path])
-      split_archive(archive, "part_#{filename}", 512)
+      split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
     end
 
     def rack_session

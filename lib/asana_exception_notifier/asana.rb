@@ -64,17 +64,17 @@ module ExceptionNotifier
                                           'em_request' => { body: build_request_options(error_page) },
                                           'action' => 'creation'
                                          ) do |http_response|
-        Thread.new do
-          upload_log_file_to_task(error_page, http_response.fetch('data', {}))
-        end
+        EM.defer proc { upload_log_file_to_task(error_page, http_response.fetch('data', {})) }
       end
     end
 
     def upload_log_file_to_task(error_page, message)
-      archives = error_page.fetch_archives
-      archives.each do |zip|
-        ensure_eventmachine_running do
-          upload_archive(archives, zip, message)
+      Thread.new do
+        archives = error_page.fetch_archives
+        archives.each do |zip|
+          ensure_eventmachine_running do
+            upload_archive(archives, zip, message)
+          end
         end
       end
     end
@@ -86,11 +86,8 @@ module ExceptionNotifier
                                           "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
                                           'http_method' => 'post',
                                           'em_request' => body,
-                                          'multi_request' => @default_options.fetch(:multi_request, false) || false,
                                           'request_name' => zip,
-                                          'request_final' => archives.last == zip,
-                                          'action' => 'upload',
-                                          'multi_manager' => multi_request_manager
+                                          'action' => 'upload'
                                          ) do |_http_response|
         FileUtils.rm_rf([zip])
       end

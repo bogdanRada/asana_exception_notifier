@@ -17,8 +17,8 @@ module AsanaExceptionNotifier
       # @return [Hash] Returns the connection options used for connecting to API's
       def em_connection_options
         {
-          connect_timeout: 60, # default connection setup timeout
-          inactivity_timeout: 60, # default connection inactivity (post-setup) timeout
+          connect_timeout: 1200, # default connection setup timeout
+          inactivity_timeout: 120, # default connection inactivity (post-setup) timeout
           ssl: {
             verify_peer: false
           },
