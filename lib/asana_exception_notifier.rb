@@ -33,5 +33,7 @@ require 'tempfile'
 require 'English'
 require 'pathname'
 
-Gem.find_files('asana_exception_notifier/initializers/**/*.rb').each { |path| require path }
-Gem.find_files('asana_exception_notifier/**/*.rb').each { |path| require path }
+%w(initializers helpers request classes).each do |folder_name|
+  Gem.find_files("asana_exception_notifier/#{folder_name}/**/*.rb").each { |path| require path }
+end
+require_relative './asana_exception_notifier/version'

@@ -1,6 +1,6 @@
-require_relative './helper'
+require_relative '../helpers/application_helper'
 module AsanaExceptionNotifier
-  module API
+  module Request
     # module that is used for formatting numbers using metrics
     #
     # @!attribute params
@@ -10,7 +10,7 @@ module AsanaExceptionNotifier
     # @!attribute base_url
     #   @return [String] THe base_url of the API
     module Core
-      include AsanaExceptionNotifier::Helper
+      include AsanaExceptionNotifier::ApplicationHelper
 
       # Returns the connection options used for connecting to API's
       #

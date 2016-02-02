@@ -1,5 +1,6 @@
-require_relative './helper'
-require_relative './request'
+require_relative '../helpers/application_helper'
+require_relative '../request/client'
+require_relative '../request/middleware'
 # class used for connecting to github api and retrieves information about repository
 #
 # @!attribute callback
@@ -7,7 +8,7 @@ require_relative './request'
 module ExceptionNotifier
   # module that is used for formatting numbers using metrics
   class AsanaNotifier < ExceptionNotifier::BaseNotifier
-    include AsanaExceptionNotifier::Helper
+    include AsanaExceptionNotifier::ApplicationHelper
     # the base url to which the API will connect for fetching information about gems
     attr_reader :initial_options, :default_options
 
@@ -24,7 +25,7 @@ module ExceptionNotifier
       execute_with_rescue do
         error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
         ensure_eventmachine_running do
-          EM::HttpRequest.use AsanaExceptionNotifier::RequestMiddleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
+          EM::HttpRequest.use AsanaExceptionNotifier::Request::Middleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
           create_asana_task(error_page) if active?
         end
       end
@@ -58,7 +59,7 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(error_page)
-      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+      AsanaExceptionNotifier::Request::Client.new(@default_options.fetch(:asana_api_key, nil),
                                           'https://app.asana.com/api/1.0/tasks',
                                           'http_method' => 'post',
                                           'em_request' => { body: build_request_options(error_page) },
@@ -82,7 +83,7 @@ module ExceptionNotifier
     def upload_archive(zip, task_data)
       return if task_data.blank?
       body = multipart_file_upload_details(zip)
-      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+      AsanaExceptionNotifier::Request::Client.new(@default_options.fetch(:asana_api_key, nil),
                                           "https://app.asana.com/api/1.0/tasks/#{task_data['id']}/attachments",
                                           'http_method' => 'post',
                                           'em_request' => body,

@@ -1,8 +1,8 @@
-require_relative './helper'
+require_relative '../helpers/application_helper'
 module AsanaExceptionNotifier
   # class used for rendering the template for exception
   class ErrorPage
-    include AsanaExceptionNotifier::Helper
+    include AsanaExceptionNotifier::ApplicationHelper
 
     attr_reader :template_path, :exception, :options, :boundary, :template_details, :env, :request, :tempfile, :template_params, :content
 

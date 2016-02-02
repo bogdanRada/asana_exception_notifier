@@ -1,6 +1,6 @@
 module AsanaExceptionNotifier
   # module that is used for formatting numbers using metrics
-  module Helper
+  module ApplicationHelper
   # function that makes the methods incapsulated as utility functions
 
   module_function
@@ -110,7 +110,7 @@ module AsanaExceptionNotifier
     end
 
     def template_dir
-      File.expand_path(File.join(File.dirname(__FILE__), 'note_templates'))
+      File.expand_path(File.join(root, 'note_templates'))
     end
 
     def default_template_path
@@ -144,7 +144,7 @@ module AsanaExceptionNotifier
     #
     # @api public
     def root
-      File.expand_path(File.dirname(File.dirname(__dir__)))
+      File.expand_path(File.dirname(__dir__))
     end
 
     def get_extension_and_name_from_file(tempfile)
