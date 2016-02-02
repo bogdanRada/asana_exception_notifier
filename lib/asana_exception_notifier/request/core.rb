@@ -35,10 +35,7 @@ module AsanaExceptionNotifier
       def em_request_options(params = {})
         {
           redirects: 5, # follow 3XX redirects up to depth 5
-          keepalive: true,
-          ssl: {
-            verify_peer: false
-          }, # enable keep-alive (don't send Connection:close header)
+          keepalive: true, # enable keep-alive (don't send Connection:close header)
           head: (params[:head] || {}).merge(
             'ACCEPT' => '*/*',
             'Connection' => 'keep-alive'
