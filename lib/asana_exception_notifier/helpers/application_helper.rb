@@ -132,10 +132,46 @@ module AsanaExceptionNotifier
         if value.is_a?(Hash)
           get_hash_rows(value, rows, "#{key}.")
         else
-          rows.push(["#{prefix}#{key}", value])
+          rows.push(["#{prefix}#{key}".inspect, escape(value.inspect)])
         end
       end
       rows
+    end
+
+    def escape(text)
+      text.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')
+    end
+
+    # Gets a bidimensional array and create a table.
+    # The first array is used as label.
+    #
+    def mount_table(array, options = {})
+      header = array.shift
+      return '' if array.empty?
+
+      header = header.map { |i| escape(i.to_s.humanize) }
+      rows = array.map { |i| "<tr><td>#{i.join('</td><td>')}</td></tr>" }
+
+      <<-TABLE
+       <table #{hash_to_html_attributes(options)}>
+         <thead><tr><th>#{header.join('</th><th>')}</th></tr></thead>
+         <tbody>#{rows.join}</tbody>
+       </table>
+       TABLE
+    end
+
+    # Mount table for hash, using name and value and adding a name_value class
+    # to the generated table.
+    #
+    def mount_table_for_hash(hash, options = {})
+      rows = get_hash_rows(hash)
+      mount_table(rows.unshift(%w(Name Value)), { class: 'name_values' }.merge(options))
+    end
+
+    def hash_to_html_attributes(hash)
+      hash.map do |key, value|
+        "#{key}=\"#{value.gsub('"', '\"')}\" "
+      end.join(' ')
     end
 
     # returns the root path of the gem
@@ -162,14 +198,6 @@ module AsanaExceptionNotifier
       options.symbolize_keys!
       options[:em_request] ||= {}
       options
-    end
-
-    # Mount table for hash, using name and value and adding a name_value class
-    # to the generated table.
-    #
-    def mount_table_for_hash(hash, _options = {})
-      return if hash.blank?
-      get_hash_rows(hash)
     end
 
     def create_upload_file_part(file)

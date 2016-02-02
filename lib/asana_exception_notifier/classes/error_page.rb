@@ -31,7 +31,7 @@ module AsanaExceptionNotifier
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         fault_data: exception_data,
         request_data: setup_env_params,
-        uname: Sys::Uname.uname.to_s,
+        uname: Sys::Uname.uname,
         timestamp: @timestamp,
         pwd:  File.expand_path($PROGRAM_NAME),
         ip_info: fetch_client_ips
@@ -61,8 +61,9 @@ module AsanaExceptionNotifier
 
     def render_template(template = nil)
       template_params = parse_exception_options
+      new_params = template_params.merge(template_params: template_params)
       current_template = template.present? ? template : @template_path
-      Tilt.new(current_template).render(self, template_params.stringify_keys)
+      Tilt.new(current_template).render(self, new_params.stringify_keys)
     end
 
     def create_tempfile
@@ -76,12 +77,12 @@ module AsanaExceptionNotifier
     def fetch_archives
       filename, path = create_tempfile
       archive = compress_files(File.dirname(path), filename, [path])
-      # FileUtils.rm_rf([path])
+      FileUtils.rm_rf([path])
       split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
     end
 
     def rack_session
-      @env.fetch('rack.session', {})
+      @env.fetch('rack.session', {}).to_json
     end
 
     def fetch_client_ips
@@ -96,7 +97,7 @@ module AsanaExceptionNotifier
     end
 
     def remote_ip
-      @env.fetch('HTTP_CLIENT_IP', '') || @env.fetch('REMOTE_ADDR', '')
+      @env.fetch('HTTP_CLIENT_IP', '') || remote_addr
     end
 
     def http_x_forwarded_for
