@@ -17,8 +17,8 @@ module AsanaExceptionNotifier
       # @return [Hash] Returns the connection options used for connecting to API's
       def em_connection_options
         {
-          connect_timeout: 60,       # default connection setup timeout
-          inactivity_timeout: 60,    # default connection inactivity (post-setup) timeout
+          connect_timeout: 60, # default connection setup timeout
+          inactivity_timeout: 60, # default connection inactivity (post-setup) timeout
           ssl: {
             verify_peer: false
           },
@@ -34,8 +34,11 @@ module AsanaExceptionNotifier
       # @return [Hash] Returns the request options used for connecting to API's
       def em_request_options(params = {})
         {
-          redirects: 5,              # follow 3XX redirects up to depth 5
-          keepalive: true,           # enable keep-alive (don't send Connection:close header)
+          redirects: 5, # follow 3XX redirects up to depth 5
+          keepalive: true,
+          ssl: {
+            verify_peer: false
+          }, # enable keep-alive (don't send Connection:close header)
           head: (params[:head] || {}).merge(
             'ACCEPT' => '*/*',
             'Connection' => 'keep-alive'
@@ -112,6 +115,11 @@ module AsanaExceptionNotifier
       # @return [void]
       def register_error_callback(http)
         http.errback { |error| callback_error(error) }
+      end
+
+      def get_error_from_request(http, options)
+        http_response = http.respond_to?(:response) ? http.response : http.responses[:errback]
+        options[:multi_request].present? && http_response.is_a?(Hash) ? http_response.values.map(&:response) : http_response
       end
 
       # Method that is used to react when an error happens in a HTTP request

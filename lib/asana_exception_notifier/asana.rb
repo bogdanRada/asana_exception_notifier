@@ -58,43 +58,39 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(error_page)
-      Thread.new do
-        AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-                                            'https://app.asana.com/api/1.0/tasks',
-                                            'http_method' => 'post',
-                                            'em_request' => { body: build_request_options(error_page) },
-                                            'action' => 'creation'
-                                           ) do |http_response|
-          upload_log_file_to_task(error_page, http_response.fetch('data', {}))
-        end
-      end.join
+      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+                                          'https://app.asana.com/api/1.0/tasks',
+                                          'http_method' => 'post',
+                                          'em_request' => { body: build_request_options(error_page) },
+                                          'action' => 'creation'
+                                         ) do |http_response|
+        upload_log_file_to_task(error_page, http_response.fetch('data', {}))
+      end
     end
 
     def upload_log_file_to_task(error_page, message)
       archives = error_page.fetch_archives
-      logger.debug(archives)
-      threads = archives.map do |zip|
-        upload_archive(archives, zip, message)
+      archives.each do |zip|
+        ensure_eventmachine_running do
+          upload_archive(archives, zip, message)
+        end
       end
-      threads.each_slice(2).to_a.map(&:join)
     end
 
     def upload_archive(archives, zip, message)
       return if message.blank?
       body = multipart_file_upload_details(zip)
-      Thread.new do
-        AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
-                                            "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
-                                            'http_method' => 'post',
-                                            'em_request' => body,
-                                            'multi_request' => @default_options.fetch(:multi_request, false) || false,
-                                            'request_name' => zip,
-                                            'request_final' => archives.last == zip,
-                                            'action' => 'upload',
-                                            'multi_manager' => multi_request_manager
-                                           ) do |_http_response|
-          FileUtils.rm_rf([zip])
-        end
+      AsanaExceptionNotifier::Request.new(@default_options.fetch(:asana_api_key, nil),
+                                          "https://app.asana.com/api/1.0/tasks/#{message['id']}/attachments",
+                                          'http_method' => 'post',
+                                          'em_request' => body,
+                                          'multi_request' => @default_options.fetch(:multi_request, true) || true,
+                                          'request_name' => zip,
+                                          'request_final' => archives.last == zip,
+                                          'action' => 'upload',
+                                          'multi_manager' => multi_request_manager
+                                         ) do |_http_response|
+        FileUtils.rm_rf([zip])
       end
     end
   end

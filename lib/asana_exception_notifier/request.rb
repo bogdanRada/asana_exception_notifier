@@ -54,27 +54,37 @@ module AsanaExceptionNotifier
 
     def send_request
       fetch_data(@options) do |http_response|
-        handle_multi_response(http_response)
+        handle_all_responses(http_response)
       end
     end
 
-    def handle_multi_response(http_response)
-      logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{http_response}")
+    def handle_all_responses(http_response)
       @multi_manager.requests.delete(@http) if @multi_manager.present?
-      if http_response.is_a?(Array)
-        http_response.each { |response| handle_response(response) }
+      if http_response.is_a?(Hash) && %i(callback errback).all? { |key| http_response.symbolize_keys.keys.include?(key) }
+        handle_multi_response(http_response)
       else
         handle_response(http_response)
       end
     end
 
+    def handle_multi_response(http_response)
+      get_multi_request_values(http_response, :callback).each { |response| handle_response(response) }
+      get_multi_request_values(http_response, :errback).each { |response| handle_error(response) }
+    end
+
+    def handle_error(error)
+      logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{error}")
+      fail(error)
+    end
+
     def handle_response(http_response)
+      logger.debug("[AsanaExceptionNotifier]: Task #{@options.fetch(:action, '')} returned:  #{http_response}")
       data = JSON.parse(http_response)
       callback_task_creation(data)
     end
 
     def callback_task_creation(data)
-      data.fetch('errors', {}).present? ? fail(data) : succeed(data)
+      data.fetch('errors', {}).present? ? handle_error(data) : succeed(data)
     end
   end
 end
