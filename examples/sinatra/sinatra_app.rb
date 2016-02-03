@@ -15,11 +15,24 @@ class SinatraApp < Sinatra::Base
     :asana => {
       asana_api_key: ENV['ASANA_API_KEY'],
       workspace: ENV['ASANA_WORKSPACE_ID'],
+      assignee: 'me',
+      assignee_status: 'today', # 'today'
+      due_at:  Time.now.iso8601,
+      due_on: nil,
+      hearted: false,
+      hearts: [],
+      projects: [],
+      followers: [],
+      memberships: [],
+      tags: [],
+      name: nil,
+      notes: '',
+      template_path: nil
     }
 
   get '/' do
     raise StandardError, "ERROR: #{params[:error]}" unless params[:error].blank?
-    'Everything is fine! Now, lets break things clicking <a href="/?error=ops"> here </a>. Dont forget to see the emails at <a href="http://localhost:1080">mailcatcher</a> !'
+    'Everything is fine! Now, lets break things clicking <a href="/?error=ops"> here </a>. Dont forget to see the asana tasks at <a href="http://asana.com">Asana</a> !'
   end
 
   get '/background_notification' do
@@ -28,6 +41,6 @@ class SinatraApp < Sinatra::Base
     rescue Exception => e
       ExceptionNotifier.notify_exception(e, :data => {:msg => "Cannot divide by zero!"})
     end
-    'Check email at <a href="http://localhost:1080">mailcatcher</a>.'
+    'Check notification at <a href="http://asana.com">Asana</a>.'
   end
 end
