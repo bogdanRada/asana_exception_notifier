@@ -5,9 +5,6 @@ File:                    <%=   exception.backtrace.slice(0, 1).join("\n  ")  %>
 <% if request_data[:ip_address].present? %>
 IP:                      <%= request_data[:ip_address] %>
 <% end %>
-<% if request_data[:session].present? %>
-Session:                      <%= request_data[:session]%>
-<% end %>
 <% if request_data[:url].present? %>
 Request URI:             <%= request_data[:url] %>
 <% end %>
