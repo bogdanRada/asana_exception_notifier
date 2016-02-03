@@ -26,6 +26,9 @@ Dependencies
 5.	[multipart_body >= 0.2.1](https://github.com/cloudmailin/multipart_body)
 6.	[tilt >= 1.4](https://github.com/rtomayko/tilt/)
 7.	[rack >= 1.6](http://rack.github.io/)
+8.	[rubyzip >= 1.0.0](https://github.com/rubyzip/rubyzip)
+9.	[zip-zip >= 0.3](https://github.com/orien/zip-zip)
+10.	[sys-uname >= 1.0.2](https://github.com/djberg96/sys-uname)
 
 Installation Instructions
 -------------------------

@@ -6,7 +6,9 @@ require 'yard'
 Coveralls::RakeTask.new
 
 RSpec::Core::RakeTask.new(:spec) do |spec|
-  spec.rspec_opts = ['--backtrace', '--fail-fast'] if ENV['DEBUG']
+  default_options = ['--colour']
+  default_options.concat(['--backtrace', '--fail-fast']) if ENV['DEBUG']
+  spec.rspec_opts = default_options
 end
 
 YARD::Config.options[:load_plugins] = true

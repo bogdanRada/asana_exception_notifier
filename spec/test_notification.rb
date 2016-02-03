@@ -5,13 +5,13 @@ AsanaExceptionNotifier::ErrorPage.class_eval do
 
   def initialize(*args)
     original_initialize(*args)
-    debug_template if ENV['DEBUG_ASANA_TEMPLATE']
+    debug_html_template if ENV['DEBUG_ASANA_TEMPLATE']
   end
 
-  def debug_template
+  def debug_html_template
     _filename, path = create_tempfile
     system("google-chrome #{path}")
-    sleep while 0 == 0
+    sleep until 0 == 1
   end
 end
 
