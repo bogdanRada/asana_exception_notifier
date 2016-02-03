@@ -8,7 +8,7 @@ Description
 
 Simple ruby implementation to send notifications to Asana when a exception happens in Rails or Rack-based apps by creating a task and uploading exception details to the task
 
-The gem provides a notifier for sending notifications to Asana when errors occur in a Rack/Rails application [courtesy of exception_notifications gem](https://github.com/smartinez87/exception_notifications). Check out that gem for more details on setting up the rack middleware with additional options.
+The gem provides a notifier for sending notifications to Asana when errors occur in a Rack/Rails application [courtesy of exception_notification gem](https://github.com/smartinez87/exception_notification). Check out that gem for more details on setting up the rack middleware with additional options.
 
 Requirements
 ------------
