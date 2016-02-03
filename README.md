@@ -153,7 +153,7 @@ Rails.application.config.middleware.use ExceptionNotification::Rack
 
 ### Rack/Sinatra
 
-In order to use ExceptionNotification with Sinatra, please take a look in the [example application](https://github.com/smartinez87/exception_notification/tree/master/examples/sinatra).
+In order to use ExceptionNotification with Sinatra, please take a look in the [example application](https://github.com/bogdanRada/asana_exception_notifier/tree/master/examples/sinatra).
 
 Background Notifications
 ------------------------
