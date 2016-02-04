@@ -44,6 +44,8 @@ module AsanaExceptionNotifier
       return unless io.respond_to?(:rewind)
       io.rewind
       io.read
+    rescue
+      io.inspect
     end
 
     def tempfile_details(tempfile)
@@ -127,7 +129,7 @@ module AsanaExceptionNotifier
         if value.is_a?(Hash)
           get_hash_rows(value, rows, key)
         else
-          rows.push(["#{prefix}#{key}".inspect, escape(value.inspect)])
+          rows.push(["#{prefix}#{key}".inspect, escape(inspect_value(value).inspect)])
         end
       end
       rows
@@ -150,14 +152,6 @@ module AsanaExceptionNotifier
     def parse_fieldset_value(options)
       value = options[:value]
       value.is_a?(Hash) ? value.reject! { |_new_key, new_value| new_value.is_a?(Hash) } : value
-    end
-
-    def coerce_object_to_hash(object)
-      hash = {}
-      object.instance_variables.each do |name|
-        hash[name.to_s[1..-1]] = object.instance_variable_get(name)
-      end
-      hash
     end
 
     # Mount table for hash, using name and value and adding a name_value class

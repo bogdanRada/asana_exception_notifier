@@ -37,7 +37,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'sys-uname', '~> 1.0', '>= 1.0.2'
 
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
-  s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'
+  s.add_development_dependency 'simplecov', '~> 0.11', '>= 0.10'
   s.add_development_dependency 'simplecov-summary', '~> 0.0.4', '>= 0.0.4'
   s.add_development_dependency 'coveralls', '~> 0.7', '>= 0.7'
   s.add_development_dependency 'rake', '~> 10.5', '>= 10.5'
