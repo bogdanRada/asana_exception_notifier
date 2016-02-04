@@ -126,37 +126,13 @@ module AsanaExceptionNotifier
 
     def get_hash_rows(hash, rows = [], prefix = '')
       hash.each do |key, value|
-        if value.is_a?(Hash) || value_is_object?(value)
+        if value.is_a?(Hash)
           get_object_rows(value, rows)
         else
           rows.push([key.inspect, escape(inspect_value(value).inspect)]) if value.present?
         end
       end
       rows
-    end
-
-    def coerce_object_to_hash(object)
-      hash = {}
-      object.instance_variables.each do |name|
-        value = object.instance_variable_get(name)
-        if value.present?
-          logger.debug("Coercing #{[object.class, name, value.class].inspect}")
-          hash[name.to_s[1..-1]] = value_is_object?(value) ? coerce_object_to_hash(value) : value.inspect
-        end
-      end
-      hash
-    end
-
-    def all_types
-      [TrueClass, FalseClass, String, Fixnum, Float, Bignum, Symbol, Hash, Array, IO, Numeric, NilClass]
-    end
-
-    def value_is_object?(value)
-      all_types.find { |type| value.is_a?(type) || value_is_exception?(value) }.blank?
-    end
-
-    def value_is_exception?(value)
-      %w(Error Exception Err Exit).any? { |name| value.class.to_s.include?(name) }.present?
     end
 
     def inspect_value(value)

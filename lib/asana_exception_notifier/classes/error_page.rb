@@ -16,13 +16,6 @@ module AsanaExceptionNotifier
       @request = action_dispatch? ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)
       @timestamp = Time.now
       parse_exception_options
-      debug_html_template
-    end
-
-    def debug_html_template
-      _filename, path = create_tempfile
-      system("google-chrome #{path}")
-      sleep until 0 == 1
     end
 
     def html_template(path)
@@ -49,12 +42,19 @@ module AsanaExceptionNotifier
         basic_info: fetch_basic_info,
         exception: @exception,
         request: @request,
-        environment: @request.respond_to?(:filtered_env) ? @request.filtered_env : @env,
+        env: @request.respond_to?(:filtered_env) ? @request.filtered_env : @env,
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         exception_data: exception_data,
         exception_service_data: exception_service,
-        request_data: setup_env_params
+        request_data: setup_env_params,
+        parameters: @request.respond_to?(:filtered_parameters) ? filter_params(@request.filtered_parameters) : filter_params(request_params),
+        session: session.respond_to?(:to_hash) ? session.to_hash : session.to_h,
+        cookies: @request.cookies.to_h
       }.merge(@options).reject { |_key, value| value.blank? }
+    end
+
+    def session
+      @request.session
     end
 
     def fetch_basic_info
@@ -92,9 +92,6 @@ module AsanaExceptionNotifier
         referrer: @request.referer,
         http_method: action_dispatch? ? @request.method : @request.request_method,
         ip_address:  @request.respond_to?(:remote_ip) ? @request.remote_ip : @request.ip,
-        parameters: @request.respond_to?(:filtered_parameters) ? filter_params(@request.filtered_parameters) : filter_params(request_params),
-        session: @request.session,
-        cookies: @request.cookies,
         user_agent: @request.user_agent
       }
     end
@@ -129,6 +126,10 @@ module AsanaExceptionNotifier
           end
         end
       end
+      hash.keys.sort.each do |k|
+        html =  mount_table_for_hash(hash.delete(k))
+        hash[k] = html if html.present?
+      end
       hash
     end
 
@@ -137,8 +138,6 @@ module AsanaExceptionNotifier
       hash.each_with_parent do |parent, key, value|
         if value.is_a?(Hash)
           rows.concat(fetch_fieldsets(value, rows))
-        elsif value_is_object?(value)
-          rows.concat(fetch_fieldsets(coerce_object_to_hash(value), rows))
         else
           rows << {parent: parent, key: key, value: value}
         end
