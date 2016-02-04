@@ -44,11 +44,3 @@ require 'pathname'
   Gem.find_files("asana_exception_notifier/#{folder_name}/**/*.rb").each { |path| require path }
 end
 require_relative './asana_exception_notifier/version'
-
-class Hash
-  def each_with_parent(parent=nil, &blk)
-    each do |k, v|
-      Hash === v ? v.each_with_parent(k, &blk) : blk.call(parent,k,v)
-    end
-  end
-end

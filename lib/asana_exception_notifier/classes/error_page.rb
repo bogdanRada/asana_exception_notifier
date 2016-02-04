@@ -116,30 +116,20 @@ module AsanaExceptionNotifier
     end
 
     def group_fieldsets
-      hash = {}
-      rows = fetch_fieldsets.group_by{ |hash_item| hash_item[:parent].to_s.downcase }
-      rows.each do |group_name, group|
-        if group_name.present?
-          group.each do |hash_item|
-            hash[group_name] ||={}
-            hash[group_name][hash_item[:key]] = hash_item[:value] if hash_item[:value].present?
-          end
-        end
-      end
-      hash.keys.sort.each do |k|
-        html =  mount_table_for_hash(hash.delete(k))
-        hash[k] = html if html.present?
+      fetch_fieldsets.keys.sort.each do |key|
+        html = mount_table_for_hash(hash.delete(key))
+        hash[key] = html if html.present?
       end
       hash
     end
 
-
-    def fetch_fieldsets(hash = @template_params, rows = [])
-      hash.each_with_parent do |parent, key, value|
-        if value.is_a?(Hash)
-          rows.concat(fetch_fieldsets(value, rows))
-        else
-          rows << {parent: parent, key: key, value: value}
+    def fetch_fieldsets
+      rows = @template_params.map_with_parent.group_by { |hash_item| hash_item[:parent].to_s.downcase }
+      fetch_fieldsets.each do |group_name, group|
+        next if group_name.blank?
+        group.each do |hash_item|
+          hash[group_name] ||={}
+          hash[group_name][hash_item[:key]] = hash_item[:value] if hash_item[:value].present?
         end
       end
       rows
