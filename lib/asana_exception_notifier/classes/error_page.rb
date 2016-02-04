@@ -7,14 +7,22 @@ module AsanaExceptionNotifier
     attr_reader :template_path, :exception, :options, :boundary, :template_details, :env, :request, :tempfile, :template_params, :content
 
     def initialize(template_path, exception, options)
-      @template_path = template_path
       @exception = exception
       @options = options.symbolize_keys
+      html_template(template_path)
       @template_details = setup_template_details
       @env = (@options[:env] || ENV.to_h).stringify_keys
       @request = action_dispatch? ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)
       @timestamp = Time.now
       parse_exception_options
+    end
+
+    def html_template(path)
+      @template_path = if path_is_a_template?(path)
+                         expanded_path(path)
+                       else
+                         File.join(template_dir, 'exception_details.html.erb')
+                       end
     end
 
     def action_dispatch?
@@ -110,17 +118,19 @@ module AsanaExceptionNotifier
     def create_tempfile(output = render_template)
       tempfile = Tempfile.new([SecureRandom.uuid, ".#{@template_details[:template_extension]}"], encoding: 'utf-8')
       tempfile.write(output)
+      ObjectSpace.undefine_finalizer(tempfile) # force garbage collector not to remove automatically the file
       tempfile.close
-      details = tempfile_details(tempfile)
-      [details[:filename], details[:path]]
+      tempfile_details(tempfile).slice(:filename, :path).values
     end
 
     def fetch_archives(output = render_template)
-      return [] if output.blank?
-      filename, path = create_tempfile(output)
-      archive = compress_files(File.dirname(path), filename, [path])
-      remove_tempfile(path)
-      split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
+      execute_with_rescue(value: []) do
+        return [] if output.blank?
+        filename, path = create_tempfile(output)
+        archive = compress_files(File.dirname(path), filename, [expanded_path(path)])
+        remove_tempfile(path)
+        split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
+      end
     end
 
     def remove_tempfile(path)

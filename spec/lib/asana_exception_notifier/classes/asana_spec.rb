@@ -3,7 +3,6 @@
 require 'spec_helper'
 
 describe ExceptionNotifier::AsanaNotifier do
-
   let(:options) { double('options') }
 
   before(:each) do
@@ -18,6 +17,4 @@ describe ExceptionNotifier::AsanaNotifier do
       expect(@subject.initial_options).to eq options
     end
   end
-
-
 end

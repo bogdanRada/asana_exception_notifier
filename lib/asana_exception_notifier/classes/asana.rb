@@ -15,15 +15,14 @@ module ExceptionNotifier
     def initialize(options)
       execute_with_rescue do
         super
-        @initial_options = options.symbolize_keys
-        options = @initial_options.reject { |_key, value| value.blank? }
-        parse_options(options)
+        @initial_options = options.symbolize_keys.reject { |_key, value| value.blank? }
+        parse_options(@initial_options)
       end
     end
 
     def call(exception, options = {})
-      execute_with_rescue do
-        ensure_eventmachine_running do
+      ensure_eventmachine_running do
+        execute_with_rescue do
           EM::HttpRequest.use AsanaExceptionNotifier::Request::Middleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
           error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
           create_asana_task(error_page) if active?
@@ -31,27 +30,54 @@ module ExceptionNotifier
       end
     end
 
+    def asana_api_key
+      @default_options.fetch(:asana_api_key, nil)
+    end
+
+    def workspace
+      @default_options.fetch(:workspace, nil)
+    end
+
+    def notes
+      @default_options.fetch(:notes, nil)
+    end
+
+    def task_name
+      @default_options.fetch(:name, nil)
+    end
+
     def active?
-      @default_options.fetch(:asana_api_key, nil).present? && @default_options.fetch(:workspace, nil).present?
+      asana_api_key.present? && workspace.present?
+    end
+
+    def template_path
+      @default_options.fetch(:template_path, nil)
     end
 
   private
 
     def parse_options(options)
-      options = options.symbolize_keys.reject { |key, _value| !permitted_options.key?(key) }
+      options = options.reject { |key, _value| !permitted_options.key?(key) }
       @default_options = permitted_options.merge(options).reject { |_key, value| value.blank? }
     end
 
-    def template_path
-      template_path = @default_options.fetch(:template_path, nil)
-      template_path.blank? ? default_template_path : template_path_exist(File.expand_path(template_path))
+    def note_content(error_page)
+      if path_is_a_template?(notes)
+        error_page.render_template(expanded_path(notes))
+      else
+        notes.present? ? notes : error_page.render_template(File.join(template_dir, 'notes.text.erb'))
+      end
+    end
+
+    def task_name_content(error_page)
+      task_name.present? ? task_name : "[AsanaExceptionNotifier] #{error_page.exception_data[:message]}"
     end
 
     def build_request_options(error_page)
       @default_options.except(:asana_api_key, :template_path).merge(
-        name: @default_options.fetch(:name, nil) || "[AsanaExceptionNotifier] #{error_page.exception_data[:message]}",
-        notes:  @default_options.fetch(:notes, nil) || error_page.render_template(File.join(template_dir, 'asana_exception_notifier.text.erb')),
-        workspace: @default_options.fetch(:workspace, nil).to_i
+        name: task_name_content(error_page),
+        notes:  note_content(error_page),
+        workspace: workspace.to_i
       ).symbolize_keys!
     end
 

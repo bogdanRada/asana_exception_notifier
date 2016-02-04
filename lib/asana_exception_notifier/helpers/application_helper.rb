@@ -1,6 +1,8 @@
+require_relative './heredoc_helper'
 module AsanaExceptionNotifier
   # module that is used for formatting numbers using metrics
   module ApplicationHelper
+    include AsanaExceptionNotifier::HeredocHelper
   # function that makes the methods incapsulated as utility functions
 
   module_function
@@ -21,25 +23,28 @@ module AsanaExceptionNotifier
         tags: [],
         notes: '',
         name: '',
-        template_path: default_template_path
+        template_path: nil
       }
+    end
+
+    def expanded_path(path)
+      File.expand_path(path)
+    end
+
+    def path_is_a_template?(path)
+      path.present? && template_path_exist(expanded_path(path))
     end
 
     def multi_request_manager
       @multi_manager ||= EventMachine::MultiRequest.new
     end
 
-    def extract_body(env)
-      return if env.blank? || !env.is_a?(Hash)
-      io = env['rack.input']
-      io.rewind if io.respond_to?(:rewind)
+    def extract_body(io)
+      return unless io.respond_to?(:rewind)
+      io.rewind
       io.read
-    end
-
-    def show_hash_content(hash)
-      hash.map do |key, value|
-        value.is_a?(Hash) ? show_hash_content(value) : ["#{key}:", value]
-      end.join("\n  ")
+    rescue
+      io.inspect
     end
 
     def tempfile_details(tempfile)
@@ -111,11 +116,7 @@ module AsanaExceptionNotifier
     end
 
     def template_dir
-      File.expand_path(File.join(root, 'note_templates'))
-    end
-
-    def default_template_path
-      File.join(template_dir, 'asana_exception_notifier.html.erb')
+      File.expand_path(File.join(root, 'templates'))
     end
 
     def template_path_exist(path)
@@ -123,26 +124,19 @@ module AsanaExceptionNotifier
       fail ArgumentError, "file #{path} doesn't exist"
     end
 
-    def max_length(rows, index)
-      value = rows.max_by { |array| array[index].to_s.size }
-      value.is_a?(Array) ? value[index] : value
-    end
-
     def get_hash_rows(hash, rows = [], prefix = '')
       hash.each do |key, value|
         if value.is_a?(Hash)
           get_hash_rows(value, rows, key)
         else
-          rows.push(["#{prefix}#{key}".inspect, escape(value.inspect)])
+          rows.push(["#{prefix}#{key}".inspect, escape(inspect_value(value).inspect)])
         end
       end
       rows
     end
 
-    def link_helper(link)
-      <<-LINK
-      <a href="javascript:void(0)" onclick="AjaxExceptionNotifier.hideAllAndToggle('#{link.downcase}')">#{link.camelize}</a>
-      LINK
+    def inspect_value(value)
+      value.is_a?(IO) ? extract_body(value) : value
     end
 
     def escape(text)
@@ -157,24 +151,6 @@ module AsanaExceptionNotifier
     def parse_fieldset_value(options)
       value = options[:value]
       value.is_a?(Hash) ? value.reject! { |_new_key, new_value| new_value.is_a?(Hash) } : value
-    end
-
-    # Gets a bidimensional array and create a table.
-    # The first array is used as label.
-    #
-    def mount_table(array, options = {})
-      return '' if array.blank?
-      header = array.shift
-
-      header = header.map { |name| escape(name.to_s.humanize) }
-      rows = array.map { |name| "<tr><td>#{name.join('</td><td>')}</td></tr>" }
-
-      <<-TABLE
-       <table #{hash_to_html_attributes(options)}>
-         <thead><tr><th>#{header.join('</th><th>')}</th></tr></thead>
-         <tbody>#{rows.join}</tbody>
-       </table>
-      TABLE
     end
 
     # Mount table for hash, using name and value and adding a name_value class
