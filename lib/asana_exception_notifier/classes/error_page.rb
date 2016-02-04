@@ -16,14 +16,21 @@ module AsanaExceptionNotifier
       @request = action_dispatch? ? ActionDispatch::Request.new(@env) : Rack::Request.new(@env)
       @timestamp = Time.now
       parse_exception_options
+      debug_html_template
+    end
+
+    def debug_html_template
+      _filename, path = create_tempfile
+      system("google-chrome #{path}")
+      sleep until 0 == 1
     end
 
     def html_template(path)
       @template_path = if path_is_a_template?(path)
-                         expanded_path(path)
-                       else
-                         File.join(template_dir, 'exception_details.html.erb')
-                       end
+        expanded_path(path)
+      else
+        File.join(template_dir, 'exception_details.html.erb')
+      end
     end
 
     def action_dispatch?
@@ -33,26 +40,32 @@ module AsanaExceptionNotifier
     def setup_template_details
       template_extension = @template_path.scan(/\.(\w+)\.?(.*)?/)[0][0]
       get_extension_and_name_from_file(@template_path).merge(
-        template_extension: template_extension
+      template_extension: template_extension
       )
     end
 
     def parse_exception_options
       @template_params ||= {
-        server:  Socket.gethostname,
+        basic_info: fetch_basic_info,
         exception: @exception,
         request: @request,
         environment: @request.respond_to?(:filtered_env) ? @request.filtered_env : @env,
-        rails_root: defined?(Rails) ? Rails.root : nil,
-        process: $PROCESS_ID,
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         exception_data: exception_data,
         exception_service_data: exception_service,
-        request_data: setup_env_params,
+        request_data: setup_env_params
+      }.merge(@options).reject { |_key, value| value.blank? }
+    end
+
+    def fetch_basic_info
+      {
+        server:  Socket.gethostname,
+        rails_root: defined?(Rails) ? Rails.root : nil,
+        process: $PROCESS_ID,
         uname: Sys::Uname.uname,
         timestamp: @timestamp,
         pwd:  File.expand_path($PROGRAM_NAME)
-      }.merge(@options).reject { |_key, value| value.blank? }
+      }
     end
 
     def exception_data
@@ -87,7 +100,7 @@ module AsanaExceptionNotifier
     end
 
     def filter_params(params)
-      AsanaExceptionNotifier::UnsafeFilter.new(params, @options.fetch(:unsafe_options, []))
+      AsanaExceptionNotifier::UnsafeFilter.new(params, @options.fetch(:unsafe_options, [])).arguments
     end
 
     def request_params
@@ -100,27 +113,37 @@ module AsanaExceptionNotifier
       fieldsets.map { |key, _value| link_helper(key.to_s) }.join(' | ')
     end
 
-    def fetch_fieldsets(hash, links = {}, prefix = nil)
-      return unless hash.is_a?(Hash)
-      hash.each do |key, value|
-        if value.is_a?(Hash)
-          fetch_fieldsets(value, links, key)
-        else
-          add_to_links(links, prefix, key: key, value: value)
+    def fieldsets
+      @fieldsets ||= group_fieldsets
+      @fieldsets
+    end
+
+    def group_fieldsets
+      hash = {}
+      rows = fetch_fieldsets.group_by{ |hash_item| hash_item[:parent].to_s.downcase }
+      rows.each do |group_name, group|
+        if group_name.present?
+          group.each do |hash_item|
+            hash[group_name] ||={}
+            hash[group_name][hash_item[:key]] = hash_item[:value] if hash_item[:value].present?
+          end
         end
       end
-      links
+      hash
     end
 
-    def add_to_links(links, prefix, options = {})
-      expected_value = parse_fieldset_value(options)
-      return unless expected_value.present?
-      prefix_name = set_fieldset_key(links, prefix, 'basic_info')
-      links[prefix_name][options[:key]] = expected_value
-    end
 
-    def fieldsets
-      @fieldsets ||= fetch_fieldsets(parse_exception_options).except(:env)
+    def fetch_fieldsets(hash = @template_params, rows = [])
+      hash.each_with_parent do |parent, key, value|
+        if value.is_a?(Hash)
+          rows.concat(fetch_fieldsets(value, rows))
+        elsif value_is_object?(value)
+          rows.concat(fetch_fieldsets(coerce_object_to_hash(value), rows))
+        else
+          rows << {parent: parent, key: key, value: value}
+        end
+      end
+      rows
     end
 
     def render_template(template = nil)
