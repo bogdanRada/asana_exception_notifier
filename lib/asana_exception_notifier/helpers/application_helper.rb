@@ -23,7 +23,8 @@ module AsanaExceptionNotifier
         tags: [],
         notes: '',
         name: '',
-        template_path: nil
+        template_path: nil,
+        unsafe_options: []
       }
     end
 
@@ -43,8 +44,6 @@ module AsanaExceptionNotifier
       return unless io.respond_to?(:rewind)
       io.rewind
       io.read
-    rescue
-      io.inspect
     end
 
     def tempfile_details(tempfile)
@@ -120,8 +119,7 @@ module AsanaExceptionNotifier
     end
 
     def template_path_exist(path)
-      return path if File.exist?(path)
-      fail ArgumentError, "file #{path} doesn't exist"
+      File.exist?(path)
     end
 
     def get_hash_rows(hash, rows = [], prefix = '')
@@ -129,7 +127,7 @@ module AsanaExceptionNotifier
         if value.is_a?(Hash)
           get_hash_rows(value, rows, key)
         else
-          rows.push(["#{prefix}#{key}".inspect, escape(inspect_value(value).inspect)])
+          rows.push(["#{prefix}#{key}".inspect, escape(value.inspect)])
         end
       end
       rows
@@ -143,14 +141,23 @@ module AsanaExceptionNotifier
       text.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')
     end
 
-    def set_fieldset_key(links, prefix)
-      links[prefix] ||= {}
-      prefix
+    def set_fieldset_key(links, prefix, default)
+      prefix_name = prefix.present? ? prefix : default
+      links[prefix_name] ||= {}
+      prefix_name
     end
 
     def parse_fieldset_value(options)
       value = options[:value]
       value.is_a?(Hash) ? value.reject! { |_new_key, new_value| new_value.is_a?(Hash) } : value
+    end
+
+    def coerce_object_to_hash(object)
+      hash = {}
+      object.instance_variables.each do |name|
+        hash[name.to_s[1..-1]] = object.instance_variable_get(name)
+      end
+      hash
     end
 
     # Mount table for hash, using name and value and adding a name_value class
@@ -166,6 +173,19 @@ module AsanaExceptionNotifier
       hash.map do |key, value|
         "#{key}=\"#{value.gsub('"', '\"')}\" "
       end.join(' ')
+    end
+
+    def remove_blank(args)
+      args.delete_if { |_key, value| value.blank? } if args.is_a?(Hash)
+      args.reject!(&:blank?) if args.is_a?(Array)
+    end
+
+    def get_table_headers(header)
+      header.map { |name| escape(name.to_s.humanize) }.join('</th><th>')
+    end
+
+    def get_table_rows(array)
+      array.map { |name| "<tr><td>#{name.join('</td><td>')}</td></tr>" }.join
     end
 
     # returns the root path of the gem

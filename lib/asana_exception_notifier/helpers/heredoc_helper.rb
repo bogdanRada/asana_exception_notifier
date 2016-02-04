@@ -13,16 +13,11 @@ module AsanaExceptionNotifier
     # The first array is used as label.
     #
     def mount_table(array, options = {})
-      return '' if array.blank?
-      header = array.shift
-
-      header = header.map { |name| escape(name.to_s.humanize) }
-      rows = array.map { |name| "<tr><td>#{name.join('</td><td>')}</td></tr>" }
-
+      header = array.extract_options!
       <<-HTML
       <table #{hash_to_html_attributes(options)}>
-      <thead><tr><th>#{header.join('</th><th>')}</th></tr></thead>
-      <tbody>#{rows.join}</tbody>
+      <thead><tr><th>#{get_table_headers(header)}</th></tr></thead>
+      <tbody>#{get_table_rows(array)}</tbody>
       </table>
       HTML
     end

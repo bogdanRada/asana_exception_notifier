@@ -1,4 +1,5 @@
 require_relative '../helpers/application_helper'
+require_relative './unsafe_filter'
 module AsanaExceptionNotifier
   # class used for rendering the template for exception
   class ErrorPage
@@ -41,11 +42,12 @@ module AsanaExceptionNotifier
         server:  Socket.gethostname,
         exception: @exception,
         request: @request,
-        environment: action_dispatch? ? @request.filtered_env : @env,
+        environment: @request.respond_to?(:filtered_env) ? @request.filtered_env : @env,
         rails_root: defined?(Rails) ? Rails.root : nil,
         process: $PROCESS_ID,
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         exception_data: exception_data,
+        exception_service_data: exception_service,
         request_data: setup_env_params,
         uname: Sys::Uname.uname,
         timestamp: @timestamp,
@@ -57,22 +59,35 @@ module AsanaExceptionNotifier
       {
         error_class: @exception.class.to_s,
         message:  @exception.respond_to?(:message) ? @exception.message : exception.inspect,
-        backtrace: @exception.respond_to?(:backtrace) ? @exception.backtrace : '',
-        cause: @exception.respond_to?(:cause) ? @exception.cause : ''
+        backtrace: @exception.respond_to?(:backtrace) ? (@exception.backtrace || []).join("\n") : nil,
+        cause: @exception.respond_to?(:cause) ? @exception.cause : nil
+      }
+    end
+
+    def exception_service
+      {
+        service_class: @exception.respond_to?(:service_class) ? @exception.service_class : nil,
+        arguments: @exception.respond_to?(:service_arguments) ? filter_params(@exception.service_arguments).inspect.gsub(',', ",\n") : nil,
+        service_method: @exception.respond_to?(:service_method) ? @exception.service_method : nil,
+        trace: @exception.respond_to?(:service_backtrace) ? @exception.service_backtrace : nil
       }
     end
 
     def setup_env_params
       {
-        url: action_dispatch? ? @request.original_url : @request.path_info,
+        url: @request.respond_to?(:original_url) ? @request.original_url : @request.path_info,
         referrer: @request.referer,
         http_method: action_dispatch? ? @request.method : @request.request_method,
-        ip_address:  action_dispatch? ? @request.remote_ip : @request.ip,
-        parameters: action_dispatch? ? @request.filtered_parameters : request_params,
+        ip_address:  @request.respond_to?(:remote_ip) ? @request.remote_ip : @request.ip,
+        parameters: @request.respond_to?(:filtered_parameters) ? filter_params(@request.filtered_parameters) : filter_params(request_params),
         session: @request.session,
         cookies: @request.cookies,
         user_agent: @request.user_agent
       }
+    end
+
+    def filter_params(params)
+      AsanaExceptionNotifier::UnsafeFilter.new(params, @options.fetch(:unsafe_options, []))
     end
 
     def request_params
@@ -100,7 +115,7 @@ module AsanaExceptionNotifier
     def add_to_links(links, prefix, options = {})
       expected_value = parse_fieldset_value(options)
       return unless expected_value.present?
-      prefix_name = set_fieldset_key(links, prefix || 'basic_info')
+      prefix_name = set_fieldset_key(links, prefix, 'basic_info')
       links[prefix_name][options[:key]] = expected_value
     end
 
@@ -123,14 +138,18 @@ module AsanaExceptionNotifier
       tempfile_details(tempfile).slice(:filename, :path).values
     end
 
+    def fetch_all_archives
+      fetch_archives
+    rescue
+      []
+    end
+
     def fetch_archives(output = render_template)
-      execute_with_rescue(value: []) do
-        return [] if output.blank?
-        filename, path = create_tempfile(output)
-        archive = compress_files(File.dirname(path), filename, [expanded_path(path)])
-        remove_tempfile(path)
-        split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
-      end
+      return [] if output.blank?
+      filename, path = create_tempfile(output)
+      archive = compress_files(File.dirname(path), filename, [expanded_path(path)])
+      remove_tempfile(path)
+      split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
     end
 
     def remove_tempfile(path)

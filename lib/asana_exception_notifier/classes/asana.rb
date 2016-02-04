@@ -13,11 +13,9 @@ module ExceptionNotifier
     attr_reader :initial_options, :default_options
 
     def initialize(options)
-      execute_with_rescue do
-        super
-        @initial_options = options.symbolize_keys.reject { |_key, value| value.blank? }
-        parse_options(@initial_options)
-      end
+      super
+      @initial_options = options.symbolize_keys.reject { |_key, value| value.blank? }
+      parse_options(@initial_options)
     end
 
     def call(exception, options = {})
@@ -98,7 +96,7 @@ module ExceptionNotifier
     end
 
     def upload_log_file_to_task(error_page, task_data)
-      archives = error_page.fetch_archives
+      archives = error_page.fetch_all_archives
       archives.each do |zip|
         upload_archive(zip, task_data)
       end
