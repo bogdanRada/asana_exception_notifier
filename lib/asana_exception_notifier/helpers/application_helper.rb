@@ -124,12 +124,12 @@ module AsanaExceptionNotifier
       File.exist?(path)
     end
 
-    def get_hash_rows(hash, rows = [], prefix = '')
+    def get_hash_rows(hash, rows = [], _prefix = '')
       hash.each do |key, value|
         if value.is_a?(Hash)
-          get_hash_rows(value, rows, key)
+          get_object_rows(value, rows)
         else
-          rows.push(["#{prefix}#{key}".inspect, escape(inspect_value(value).inspect)])
+          rows.push([key.inspect, escape(inspect_value(value).inspect)])
         end
       end
       rows
