@@ -20,10 +20,10 @@ module AsanaExceptionNotifier
 
     def html_template(path)
       @template_path = if path_is_a_template?(path)
-        expanded_path(path)
-      else
-        File.join(template_dir, 'exception_details.html.erb')
-      end
+                         expanded_path(path)
+                       else
+                         File.join(template_dir, 'exception_details.html.erb')
+                       end
     end
 
     def action_dispatch?
@@ -33,7 +33,7 @@ module AsanaExceptionNotifier
     def setup_template_details
       template_extension = @template_path.scan(/\.(\w+)\.?(.*)?/)[0][0]
       get_extension_and_name_from_file(@template_path).merge(
-      template_extension: template_extension
+        template_extension: template_extension
       )
     end
 
@@ -111,33 +111,34 @@ module AsanaExceptionNotifier
     end
 
     def fieldsets
-      @fieldsets ||= group_fieldsets
+      @fieldsets ||= mount_tables_for_fieldsets
       @fieldsets
     end
 
-    def group_fieldsets
-      fetch_fieldsets.keys.sort.each do |key|
-        html = mount_table_for_hash(hash.delete(key))
+    def mount_tables_for_fieldsets
+      hash = fetch_fieldsets
+      hash.each do |key, value|
+        html = mount_table_for_hash(value)
         hash[key] = html if html.present?
       end
       hash
     end
 
-    def fetch_fieldsets
-      rows = @template_params.map_with_parent.group_by { |hash_item| hash_item[:parent].to_s.downcase }
-      fetch_fieldsets.each do |group_name, group|
-        next if group_name.blank?
-        group.each do |hash_item|
-          hash[group_name] ||={}
-          hash[group_name][hash_item[:key]] = hash_item[:value] if hash_item[:value].present?
-        end
+    def fetch_fieldsets(hash = {})
+      @template_params.each_with_parent do |parent, key, value|
+        next if value.blank? || key.blank?
+        parent_name = set_fieldset_key(hash, parent, 'system_info')
+        hash[parent_name][key] = value
       end
-      rows
+      hash.keys.map(&:to_s).sort
+      hash
     end
 
     def render_template(template = nil)
       execute_with_rescue do
         current_template = template.present? ? template : @template_path
+        @template_params[:fieldsets] = fieldsets
+        @template_params[:fieldsets_links] = fieldsets_links
         Tilt.new(current_template).render(self, @template_params.stringify_keys)
       end
     end

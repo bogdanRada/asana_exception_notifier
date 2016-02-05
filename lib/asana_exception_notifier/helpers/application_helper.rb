@@ -3,9 +3,9 @@ module AsanaExceptionNotifier
   # module that is used for formatting numbers using metrics
   module ApplicationHelper
     include AsanaExceptionNotifier::HeredocHelper
-    # function that makes the methods incapsulated as utility functions
+  # function that makes the methods incapsulated as utility functions
 
-    module_function
+  module_function
 
     def permitted_options
       {
@@ -124,12 +124,12 @@ module AsanaExceptionNotifier
       File.exist?(path)
     end
 
-    def get_hash_rows(hash, rows = [], prefix = '')
+    def get_hash_rows(hash, rows = [], _prefix = '')
       hash.each do |key, value|
         if value.is_a?(Hash)
           get_object_rows(value, rows)
         else
-          rows.push([key.inspect, escape(inspect_value(value).inspect)]) if value.present?
+          rows.push([key.inspect, escape(inspect_value(value).inspect)])
         end
       end
       rows
@@ -210,10 +210,10 @@ module AsanaExceptionNotifier
 
     def create_upload_file_part(file)
       Part.new(name: 'file',
-      body: force_utf8_encoding(File.read(file)),
-      filename:  file,
-      content_type: 'application/zip'
-      )
+               body: force_utf8_encoding(File.read(file)),
+               filename:  file,
+               content_type: 'application/zip'
+              )
     end
 
     def multipart_file_upload_details(file)
