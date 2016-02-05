@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    asana_exception_notifier (0.0.5)
+    asana_exception_notifier (0.0.7)
       activesupport (>= 4.0, < 5)
       em-http-request (~> 1.1, >= 1.1.2)
       eventmachine (~> 1.0, >= 1.0.7)
@@ -172,7 +172,7 @@ DEPENDENCIES
   rake (~> 10.5, >= 10.5)
   redcarpet (~> 3.3, >= 3.3)
   rspec (~> 3.4, >= 3.4)
-  simplecov (~> 0.10, >= 0.10)
+  simplecov (~> 0.11, >= 0.10)
   simplecov-summary (~> 0.0.4, >= 0.0.4)
   yard (~> 0.8, >= 0.8.7)
 

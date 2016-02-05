@@ -26,7 +26,7 @@
       <fieldset class='ajax_exception_notifier_fieldset' id='<%= key %>' style="<%= fieldsets.keys.first != key ? "display:none" : '' %>">
         <legend>Debug Information for <%= key.to_s.camelize %></legend>
         <div>
-          <%= mount_table_for_hash(value) %>
+          <%= value %>
         </div>
       </fieldset>
       <% end %>

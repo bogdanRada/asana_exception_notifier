@@ -11,11 +11,11 @@ Request URI:             <%= request_data[:url] %>
 <% if request_data[:referrer].present? %>
 Referer:                 <%= request_data[:referrer] %>
 <% end %>
-PID:                     <%= process %>
-PWD:                     <%= pwd %>
-Uname:                   <%= uname %>
-Server:                  <%= server %>
-Error time:              <%= timestamp %>
+PID:                     <%= basic_info[:process] %>
+PWD:                     <%= basic_info[:pwd] %>
+Uname:                   <%= basic_info[:uname] %>
+Server:                  <%= basic_info[:server] %>
+Error time:              <%= basic_info[:timestamp] %>
 <% if request_data[:user_agent].present? %>
 User Agent:              <%= request_data[:user_agent] %>
 <% end %>
