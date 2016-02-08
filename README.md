@@ -206,7 +206,7 @@ Screenshots
 
 ![Asana Task Description Screenshot](examples/screenshots/asana_task_description-min.png)
 
-![Exception Details HTML Template](examples/screenshots/html_template_screnshot-min.png)
+![Exception Details HTML Template](examples/screenshots/html_template-min.png)
 
 Testing
 -------
