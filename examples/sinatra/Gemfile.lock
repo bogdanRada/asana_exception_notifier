@@ -1,7 +1,7 @@
 PATH
   remote: ../../
   specs:
-    asana_exception_notifier (0.0.7)
+    asana_exception_notifier (0.1.0)
       activesupport (>= 4.0, < 5)
       em-http-request (~> 1.1, >= 1.1.2)
       eventmachine (~> 1.0, >= 1.0.7)

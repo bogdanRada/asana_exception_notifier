@@ -195,6 +195,12 @@ More detailed, free-form textual information associated with the task. (Default:
 
 This can be used to override the default template when rendering the exception details with customized template.
 
+##### unsafe_options
+
+*Array, optional*
+
+This can be used to specify options as strings that will be filtered from session and from request parameters ( The options will not be displayed in the HTML template)
+
 Testing
 -------
 

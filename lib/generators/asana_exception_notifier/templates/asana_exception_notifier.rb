@@ -16,5 +16,6 @@ ExceptionNotification.configure do |config|
                                   tags: [],
                                   name: nil,
                                   notes: '',
-                                  template_path: nil
+                                  template_path: nil,
+                                  unsafe_options: []
 end
