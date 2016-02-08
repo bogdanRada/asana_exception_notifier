@@ -39,6 +39,67 @@ Add the following to your Gemfile :
   gem "asana_exception_notifier"
 ```
 
+### Rails
+
+If you are settting up for the first time this gem, just run the following command from the terminal:
+
+```
+rails g asana_exception_notifier:install
+```
+
+This command generates an initialize file (`config/initializers/asana_exception_notifier.rb`) where you can customize your configurations.
+
+Make sure the gem is not listed solely under the `production` group, since this initializer will be loaded regardless of environment.
+
+AsanaExceptionNotifier is used as a rack middleware, or in the environment you want it to run. In most cases you would want AsanaExceptionNotifier to run on production. Thus, you can make it work by putting the following lines in your `config/environments/production.rb`:
+
+```ruby
+Rails.application.config.middleware.use ExceptionNotification::Rack
+```
+
+### Rack/Sinatra
+
+In order to use ExceptionNotification with Sinatra, please take a look in the [example application](https://github.com/bogdanRada/asana_exception_notifier/tree/master/examples/sinatra).
+
+Background Notifications
+------------------------
+
+If you want to send notifications from a background process like DelayedJob, you should use the `notify_exception` method like this:
+
+```ruby
+begin
+  some code...
+rescue => exception
+  ExceptionNotifier.notify_exception(exception, notifiers: :asana)
+end
+```
+
+You can include information about the background process that created the error by including a data parameter:
+
+```ruby
+begin
+  some code...
+rescue => exception
+  ExceptionNotifier.notify_exception(exception,
+    :data => {:worker => worker.to_s, :queue => queue, :payload => payload}, notifiers: :asana)
+end
+```
+
+### Manually notify of exception
+
+If your controller action manually handles an error, the notifier will never be run. To manually notify of an error you can do something like the following:
+
+```ruby
+rescue_from Exception, :with => :server_error
+
+def server_error(exception)
+  # Whatever code that handles the exception
+
+  ExceptionNotifier.notify_exception(exception,
+    :env => request.env, :data => {:message => "was doing something wrong"}, notifiers: :asana)
+end
+```
+
 #### Options: For more options to this check [here](https://asana.com/developers/api-reference/tasks)
 
 ##### asana_api_key
@@ -132,67 +193,6 @@ More detailed, free-form textual information associated with the task. (Default:
 *Array, optional*
 
 This can be used to override the default template when rendering the exception details with customized template.
-
-### Rails
-
-If you are settting up for the first time this gem, just run the following command from the terminal:
-
-```
-rails g asana_exception_notifier:install
-```
-
-This command generates an initialize file (`config/initializers/asana_exception_notifier.rb`) where you can customize your configurations.
-
-Make sure the gem is not listed solely under the `production` group, since this initializer will be loaded regardless of environment.
-
-AsanaExceptionNotifier is used as a rack middleware, or in the environment you want it to run. In most cases you would want AsanaExceptionNotifier to run on production. Thus, you can make it work by putting the following lines in your `config/environments/production.rb`:
-
-```ruby
-Rails.application.config.middleware.use ExceptionNotification::Rack
-```
-
-### Rack/Sinatra
-
-In order to use ExceptionNotification with Sinatra, please take a look in the [example application](https://github.com/bogdanRada/asana_exception_notifier/tree/master/examples/sinatra).
-
-Background Notifications
-------------------------
-
-If you want to send notifications from a background process like DelayedJob, you should use the `notify_exception` method like this:
-
-```ruby
-begin
-  some code...
-rescue => exception
-  ExceptionNotifier.notify_exception(exception, notifiers: :asana)
-end
-```
-
-You can include information about the background process that created the error by including a data parameter:
-
-```ruby
-begin
-  some code...
-rescue => exception
-  ExceptionNotifier.notify_exception(exception,
-    :data => {:worker => worker.to_s, :queue => queue, :payload => payload}, notifiers: :asana)
-end
-```
-
-### Manually notify of exception
-
-If your controller action manually handles an error, the notifier will never be run. To manually notify of an error you can do something like the following:
-
-```ruby
-rescue_from Exception, :with => :server_error
-
-def server_error(exception)
-  # Whatever code that handles the exception
-
-  ExceptionNotifier.notify_exception(exception,
-    :env => request.env, :data => {:message => "was doing something wrong"}, notifiers: :asana)
-end
-```
 
 Testing
 -------
