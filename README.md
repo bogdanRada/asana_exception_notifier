@@ -204,8 +204,9 @@ This can be used to specify options as strings that will be filtered from sessio
 Screenshots
 -----------
 
-[![asana_exception_notifier ](examples/screenshots/asana_task_description-min.png](#features)  
-[![asana_exception_notifier ](examples/screenshots/html_template_screnshot-min.png](#features)
+![Asana Task Description Screenshot](/images/2016/02/asana_task_description-min.png)
+
+![Exception Details HTML Template](/images/2016/02/html_template_screnshot-min.png)
 
 Testing
 -------
