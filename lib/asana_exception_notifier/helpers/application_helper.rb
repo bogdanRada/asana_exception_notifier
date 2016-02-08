@@ -69,7 +69,12 @@ module AsanaExceptionNotifier
     #
     # @api public
     def logger
-      @logger ||= defined?(Rails) ? Rails.logger : ExceptionNotifier.logger
+      @logger ||= ( defined?(Rails) && rails_logger.present? ? rails_logger : ExceptionNotifier.logger )
+      @logger = @logger.present? ? @logger : Logger.new(STDOUT)
+    end
+
+    def rails_logger
+      Rails.logger
     end
 
     def ensure_eventmachine_running(&block)
@@ -147,11 +152,6 @@ module AsanaExceptionNotifier
       prefix_name = prefix.present? ? prefix : default
       links[prefix_name] ||= {}
       prefix_name
-    end
-
-    def parse_fieldset_value(options)
-      value = options[:value]
-      value.is_a?(Hash) ? value.reject! { |_new_key, new_value| new_value.is_a?(Hash) } : value
     end
 
     # Mount table for hash, using name and value and adding a name_value class
