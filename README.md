@@ -204,9 +204,9 @@ This can be used to specify options as strings that will be filtered from sessio
 Screenshots
 -----------
 
-![Asana Task Description Screenshot](/images/2016/02/asana_task_description-min.png)
+![Asana Task Description Screenshot](examples/screenshots/asana_task_description-min.png)
 
-![Exception Details HTML Template](/images/2016/02/html_template_screnshot-min.png)
+![Exception Details HTML Template](examples/screenshots/html_template_screnshot-min.png)
 
 Testing
 -------
