@@ -201,6 +201,12 @@ This can be used to override the default template when rendering the exception d
 
 This can be used to specify options as strings that will be filtered from session and from request parameters ( The options will not be displayed in the HTML template)
 
+Screenshots:
+------------
+
+[![asana_exception_notifier ](examples/screenshots/asana_task_description-min.png](#features)  
+[![asana_exception_notifier ](examples/screenshots/html_template_screnshot-min.png](#features)
+
 Testing
 -------
 
