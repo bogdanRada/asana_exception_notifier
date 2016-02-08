@@ -47,7 +47,7 @@ If you are settting up for the first time this gem, just run the following comma
 rails g asana_exception_notifier:install
 ```
 
-This command generates an initialize file (`config/initializers/asana_exception_notifier.rb`) where you can customize your configurations.
+This command generates an initialize file (`config/initializers/asana_exception_notifier.rb`) where you can customize your configurations. ( Please see section **[2.2) Options for the Rack middleware](#options-for-more-options-to-this-check-here)**\) for more information on available options )
 
 Make sure the gem is not listed solely under the `production` group, since this initializer will be loaded regardless of environment.
 
@@ -100,7 +100,8 @@ def server_error(exception)
 end
 ```
 
-#### Options: For more options to this check [here](https://asana.com/developers/api-reference/tasks)
+Available Options for the Rack Middleware
+-----------------------------------------
 
 ##### asana_api_key
 
