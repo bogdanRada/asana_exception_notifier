@@ -78,12 +78,10 @@ module AsanaExceptionNotifier
     end
 
     def exception_service
-      {
-        service_class: @exception.respond_to?(:service_class) ? @exception.service_class : nil,
-        arguments: @exception.respond_to?(:service_arguments) ? filter_params(@exception.service_arguments).inspect.gsub(',', ",\n") : nil,
-        service_method: @exception.respond_to?(:service_method) ? @exception.service_method : nil,
-        trace: @exception.respond_to?(:service_backtrace) ? @exception.service_backtrace : nil
-      }
+      @exception.instance_variables.select do |ivar|
+        attr_value = @exception.instance_variable_get(ivar)
+        attr_value.present? ? { "#{ivar}" => attr_value } : nil
+      end
     end
 
     def setup_env_params
