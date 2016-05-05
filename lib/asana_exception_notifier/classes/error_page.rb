@@ -45,7 +45,6 @@ module AsanaExceptionNotifier
         env: @request.respond_to?(:filtered_env) ? @request.filtered_env : @env,
         data: (@env.blank? ? {} : @env.fetch(:'exception_notifier.exception_data', {})).merge(@options[:data] || {}),
         exception_data: exception_data,
-        exception_service_data: exception_service,
         request_data: setup_env_params,
         parameters: @request.respond_to?(:filtered_parameters) ? filter_params(@request.filtered_parameters) : filter_params(request_params),
         session: filter_params(session.respond_to?(:to_hash) ? session.to_hash : session.to_h),
@@ -69,19 +68,21 @@ module AsanaExceptionNotifier
     end
 
     def exception_data
-      {
+      exception_service.merge(
         error_class: @exception.class.to_s,
         message:  @exception.respond_to?(:message) ? @exception.message : exception.inspect,
         backtrace: @exception.respond_to?(:backtrace) ? (@exception.backtrace || []).join("\n") : nil,
         cause: @exception.respond_to?(:cause) ? @exception.cause : nil
-      }
+      )
     end
 
     def exception_service
+      hash  = Hash.new
       @exception.instance_variables.select do |ivar|
         attr_value = @exception.instance_variable_get(ivar)
-        attr_value.present? ? { "#{ivar}" => attr_value } : nil
+       hash["#{ivar}"] = attr_value if attr_value.present?
       end
+      hash
     end
 
     def setup_env_params
