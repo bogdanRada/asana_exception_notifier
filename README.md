@@ -10,7 +10,10 @@ Simple ruby implementation to send notifications to Asana when a exception happe
 
 The gem provides a notifier for sending notifications to Asana when errors occur in a Rack/Rails application [courtesy of exception_notification gem](https://github.com/smartinez87/exception_notification). Check out that gem for more details on setting up the rack middleware with additional options.
 
-IMPORTANT! Starting with version 0.3.1, this gem no longer uses eventmachine and em-http-request gems. Instead they are replaced with Asana gem and Typhoeus.
+IMPORTANT!!!
+------------
+
+Starting with version 0.3.1, this gem no longer uses eventmachine and em-http-request gems. Instead they are replaced with Asana gem and Typhoeus.
 
 Requirements
 ------------
