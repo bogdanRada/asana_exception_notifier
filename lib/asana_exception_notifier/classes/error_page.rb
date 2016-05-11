@@ -48,7 +48,7 @@ module AsanaExceptionNotifier
         request_data: setup_env_params,
         parameters: @request.respond_to?(:filtered_parameters) ? filter_params(@request.filtered_parameters) : filter_params(request_params),
         session: filter_params(session.respond_to?(:to_hash) ? session.to_hash : session.to_h),
-        cookies: @request.cookies.to_h
+        cookies: filter_params(@request.cookies.to_h)
       }.merge(@options).reject { |_key, value| value.blank? }
     end
 
