@@ -18,8 +18,9 @@ if defined?(Sidekiq)
 end
 require 'exception_notification'
 
-require 'em-http-request'
-require 'eventmachine'
+require 'asana'
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
 
 require 'multipart_body'
 require 'rack'

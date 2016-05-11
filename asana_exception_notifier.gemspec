@@ -26,8 +26,8 @@ Gem::Specification.new do |s|
   }
 
   s.add_runtime_dependency 'activesupport', '>= 4.0', '< 5'
-  s.add_runtime_dependency 'em-http-request', '~> 1.1', '>= 1.1.2'
-  s.add_runtime_dependency 'eventmachine', '~> 1.0', '>= 1.0.7'
+  s.add_runtime_dependency 'asana', '~> 0.5', '>= 0.5.0'
+  s.add_runtime_dependency 'typhoeus', '~> 1.0', '>= 1.0.2'
   s.add_runtime_dependency 'exception_notification', '~> 4.1', '>= 4.1.4'
   s.add_runtime_dependency 'multipart_body', '~> 0.2', '>= 0.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
