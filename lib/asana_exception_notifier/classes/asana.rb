@@ -19,7 +19,7 @@ module ExceptionNotifier
 
     def asana_client
       @asana_client = Asana::Client.new do |c|
-        c.authentication :access_token, ENV['ASANA_API_KEY']
+        c.authentication :access_token, asana_api_key
         c.debug_mode
         c.faraday_adapter :typhoeus
         c.configure_faraday do |conn|
