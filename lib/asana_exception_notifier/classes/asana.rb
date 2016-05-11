@@ -1,6 +1,4 @@
 require_relative '../helpers/application_helper'
-require_relative '../request/client'
-require_relative '../request/middleware'
 # class used for connecting to github api and retrieves information about repository
 #
 # @!attribute callback
@@ -18,8 +16,21 @@ module ExceptionNotifier
       parse_options(@initial_options)
     end
 
+
+    def asana_client
+      @asana_client = Asana::Client.new do |c|
+        c.authentication :access_token, ENV['ASANA_API_KEY']
+        c.debug_mode
+        c.faraday_adapter :typhoeus
+        c.configure_faraday do |conn|
+          conn.request  :url_encoded
+          conn.response :logger
+        end
+      end
+    end
+
     def call(exception, options = {})
-      ensure_eventmachine_running do
+      ensure_thread_running do
         execute_with_rescue do
           EM::HttpRequest.use AsanaExceptionNotifier::Request::Middleware if ENV['DEBUG_ASANA_EXCEPTION_NOTIFIER']
           error_page = AsanaExceptionNotifier::ErrorPage.new(template_path, exception, options)
@@ -83,37 +94,24 @@ module ExceptionNotifier
     #
     # @return [void]
     def create_asana_task(error_page)
-      AsanaExceptionNotifier::Request::Client.new(@default_options.fetch(:asana_api_key, nil),
-                                                  'https://app.asana.com/api/1.0/tasks',
-                                                  'http_method' => 'post',
-                                                  'em_request' => { body: build_request_options(error_page) },
-                                                  'action' => 'creation'
-                                                 ) do |http_response|
-        ensure_eventmachine_running do
-          upload_log_file_to_task(error_page, http_response.fetch('data', {}))
-        end
+      task = asana_client.tasks.create(build_request_options(error_page))
+      ensure_thread_running do
+        upload_log_file_to_task(error_page, task)
       end
     end
 
-    def upload_log_file_to_task(error_page, task_data)
+    def upload_log_file_to_task(error_page, task)
       archives = error_page.fetch_all_archives
       archives.each do |zip|
-        upload_archive(zip, task_data)
+        upload_archive(zip, task)
       end
     end
 
-    def upload_archive(zip, task_data)
-      return if task_data.blank?
-      body = multipart_file_upload_details(zip)
-      AsanaExceptionNotifier::Request::Client.new(@default_options.fetch(:asana_api_key, nil),
-                                                  "https://app.asana.com/api/1.0/tasks/#{task_data['id']}/attachments",
-                                                  'http_method' => 'post',
-                                                  'em_request' => body,
-                                                  'request_name' => zip,
-                                                  'action' => 'upload'
-                                                 ) do |_http_response|
+    def upload_archive(zip, task)
+      return if task.blank?
+      attachment = task.attach(filename: zip,
+                         mime: 'application/zip')
         FileUtils.rm_rf([zip])
-      end
     end
   end
 end

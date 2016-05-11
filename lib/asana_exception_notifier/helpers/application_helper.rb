@@ -77,17 +77,9 @@ module AsanaExceptionNotifier
       Rails.logger
     end
 
-    def ensure_eventmachine_running(&block)
+    def ensure_thread_running(&block)
       Thread.abort_on_exception = true
-      register_em_error_handler
-      run_em_reactor(&block)
-    end
-
-    def register_em_error_handler
-      EM.error_handler do |error|
-        logger.debug '[AsanaExceptionNotifier]: Error during event loop :'
-        logger.debug "[AsanaExceptionNotifier]: #{log_exception(error)}"
-      end
+      run_new_thread(&block)
     end
 
     def log_exception(exception)
@@ -113,11 +105,9 @@ module AsanaExceptionNotifier
       puts "\n Command was cancelled due to an Interrupt error."
     end
 
-    def run_em_reactor
+    def run_new_thread
       Thread.new do
-        EM.run do
-          EM.defer proc { yield if block_given? }
-        end
+        yield if block_given?
       end.join
     end
 
@@ -202,46 +192,6 @@ module AsanaExceptionNotifier
       }
     end
 
-    def setup_em_options(options)
-      options.symbolize_keys!
-      options[:em_request] ||= {}
-      options
-    end
-
-    def create_upload_file_part(file)
-      Part.new(name: 'file',
-               body: force_utf8_encoding(File.read(file)),
-               filename:  file,
-               content_type: 'application/zip'
-              )
-    end
-
-    def multipart_file_upload_details(file)
-      boundary = "---------------------------#{rand(10_000_000_000_000_000_000)}"
-      body = MultipartBody.new([create_upload_file_part(file)], boundary)
-      file_upload_request_options(boundary, body, file)
-    end
-
-    def file_upload_request_options(boundary, body, file)
-      {
-        body: body.to_s,
-        head:
-        {
-          'Content-Type' => "multipart/form-data;boundary=#{boundary}",
-          'Content-Length' => File.size(file),
-          'Expect' => '100-continue'
-        }
-      }
-    end
-
-    def get_response_from_request(http, _options)
-      http.respond_to?(:response) ? http.response : http.responses
-    end
-
-    def get_multi_request_values(http_response, key)
-      response_method = key.to_s == 'callback' ? 'response' : 'error'
-      http_response[key.to_sym].values.map { |request| request.send(response_method) }.reject(&:blank?)
-    end
 
     def split_archive(archive, partial_name, segment_size)
       indexes = Zip::File.split(archive, segment_size, true, partial_name)
