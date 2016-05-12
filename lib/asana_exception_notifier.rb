@@ -22,7 +22,6 @@ require 'asana'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
 
-require 'multipart_body'
 require 'rack'
 require 'zip'
 require 'rack/mime'
