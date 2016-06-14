@@ -25,15 +25,14 @@ Dependencies
 ------------
 
 1.	[ActiveSuport > 4.0](https://rubygems.org/gems/activesupport)
-2.	[typhoeus >= 1.0.2](https://github.com/igrigorik/em-http-request)
-3.	[asana >= 0.5.0](https://github.com/eventmachine/eventmachine)
+2.	[asana >= 0.5.0](https://github.com/Asana/ruby-asana)
+3.	[typhoeus >= 1.0.2](https://github.com/typhoeus/typhoeus)
 4.	[exception_notification >= 4.1.4](https://github.com/smartinez87/exception_notification)
-5.	[multipart_body >= 0.2.1](https://github.com/cloudmailin/multipart_body)
-6.	[tilt >= 1.4](https://github.com/rtomayko/tilt/)
-7.	[rack >= 1.6](http://rack.github.io/)
-8.	[rubyzip >= 1.0.0](https://github.com/rubyzip/rubyzip)
-9.	[zip-zip >= 0.3](https://github.com/orien/zip-zip)
-10.	[sys-uname >= 1.0.2](https://github.com/djberg96/sys-uname)
+5.	[tilt >= 1.4](https://github.com/rtomayko/tilt/)
+6.	[rack >= 1.6](http://rack.github.io/)
+7.	[rubyzip >= 1.0.0](https://github.com/rubyzip/rubyzip)
+8.	[zip-zip >= 0.3](https://github.com/orien/zip-zip)
+9.	[sys-uname >= 1.0.2](https://github.com/djberg96/sys-uname)
 
 Installation Instructions
 -------------------------
