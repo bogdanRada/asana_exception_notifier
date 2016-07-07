@@ -1,15 +1,31 @@
-sudo: false
-cache: bundler
 language: ruby
+sudo: false
 before_install:
   - "echo 'gem: --no-ri --no-rdoc' > ~/.gemrc"
   - gem install bundler
+bundler_args: "--no-deployment"
+script:
+   - echo $BUNDLE_GEMFILE
+   - bundle exec rake
+gemfile:
+  - gemfiles/rails_4.0.0.gemfile
+  - gemfiles/rails_4.1.1.gemfile
+  - gemfiles/rails_4.2.0.gemfile
 rvm:
-- 2.0.0
-- 2.1.5
-- 2.2.2
-- 2.2.3
-env:
- - RAILS_ENV=test RACK_ENV=test
+  - 2.0.0
+  - 2.1.5
+  - 2.1.8
+  - 2.2.2
+  - 2.2.3
+  - 2.3.0
+  - 2.3.1
+matrix:
+  exclude:
+    - rvm: 2.0.0
+      gemfile: gemfiles/rails_5.0.0.gemfile
+    - rvm: 2.1.5
+      gemfile: gemfiles/rails_5.0.0.gemfile
+    - rvm: 2.1.8
+      gemfile: gemfiles/rails_5.0.0.gemfile
 notifications:
   email: false
