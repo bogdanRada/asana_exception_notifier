@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './heredoc_helper'
 module AsanaExceptionNotifier
   # module that is used for formatting numbers using metrics

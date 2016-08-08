@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # override Hash class
 class Hash
   def each_with_parent(parent = nil, &block)

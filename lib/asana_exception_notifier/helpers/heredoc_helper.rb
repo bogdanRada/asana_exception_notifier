@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module AsanaExceptionNotifier
   # helper methods that use Heredoc syntax
   module HeredocHelper

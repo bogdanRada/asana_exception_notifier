@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module AsanaExceptionNotifier
   module Generators
     # module that is used for formatting numbers using metrics

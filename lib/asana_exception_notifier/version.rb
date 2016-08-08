@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Returns the version of the gem  as a <tt>Gem::Version</tt>
 module AsanaExceptionNotifier
   #  it prints the gem version as a string
@@ -15,9 +16,9 @@ module AsanaExceptionNotifier
     # major release version
     MAJOR = 0
     # minor release version
-    MINOR = 3
+    MINOR = 4
     # tiny release version
-    TINY = 8
+    TINY = 0
     # prelease version ( set this only if it is a prelease)
     PRE = nil
 

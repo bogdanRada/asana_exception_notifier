@@ -6,7 +6,9 @@ AllCops:
     - vendor/**/*
     - examples/**/*
     - spec/**/*
-  TargetRubyVersion: 2.1
+    - Rakefile
+    - Gemfile
+  TargetRubyVersion: 2.3
 
 ClassLength:
   Max: 500

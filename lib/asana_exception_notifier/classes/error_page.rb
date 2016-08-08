@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 require_relative './unsafe_filter'
 module AsanaExceptionNotifier

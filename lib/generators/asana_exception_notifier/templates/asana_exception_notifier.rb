@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'asana_exception_notifier'
 
 ExceptionNotification.configure do |config|

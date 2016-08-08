@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 # class used for connecting to github api and retrieves information about repository
 #
