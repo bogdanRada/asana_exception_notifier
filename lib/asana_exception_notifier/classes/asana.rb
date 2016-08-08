@@ -16,16 +16,19 @@ module ExceptionNotifier
       parse_options(@initial_options)
     end
 
-
     def asana_client
-      @asana_client = Asana::Client.new do |c|
-        c.authentication :access_token, asana_api_key
-        c.debug_mode
-        c.faraday_adapter :typhoeus
-        c.configure_faraday do |conn|
-          conn.request  :url_encoded
-          conn.response :logger
-        end
+      @asana_client = Asana::Client.new do |config|
+        config.authentication :access_token, asana_api_key
+        config.debug_mode
+        config.faraday_adapter :typhoeus
+        faraday_configuration(config)
+      end
+    end
+
+    def faraday_configuration(config)
+      config.configure_faraday do |conn|
+        conn.request  :url_encoded
+        conn.response :logger
       end
     end
 
@@ -90,7 +93,7 @@ module ExceptionNotifier
       ).symbolize_keys!
     end
 
-    # This method fetches data from Github api and returns the size in
+    #
     #
     # @return [void]
     def create_asana_task(error_page)
@@ -109,9 +112,11 @@ module ExceptionNotifier
 
     def upload_archive(zip, task)
       return if task.blank?
-      attachment = task.attach(filename: zip,
-                         mime: 'application/zip')
-        FileUtils.rm_rf([zip])
+      task.attach(
+        filename: zip,
+        mime: 'application/zip'
+      )
+      FileUtils.rm_rf([zip])
     end
   end
 end

@@ -36,7 +36,8 @@ module AsanaExceptionNotifier
         template_extension: template_extension
       )
     end
-
+    
+    # :reek:TooManyStatements: { max_statements: 10 }
     def parse_exception_options
       @template_params ||= {
         basic_info: fetch_basic_info,
@@ -77,10 +78,10 @@ module AsanaExceptionNotifier
     end
 
     def exception_service
-      hash  = Hash.new
+      hash = {}
       @exception.instance_variables.select do |ivar|
         attr_value = @exception.instance_variable_get(ivar)
-       hash["#{ivar}"] = attr_value if attr_value.present?
+        hash[ivar.to_s] = attr_value if attr_value.present?
       end
       hash
     end
@@ -123,21 +124,29 @@ module AsanaExceptionNotifier
       hash
     end
 
-    def fetch_fieldsets(hash = {})
+    def build_template_params_hash(hash)
       @template_params.each_with_parent do |parent, key, value|
         next if value.blank? || key.blank?
         parent_name = set_fieldset_key(hash, parent, 'system_info')
         hash[parent_name][key] = value
       end
+    end
+
+    def fetch_fieldsets(hash = {})
+      build_template_params_hash(hash)
       hash.keys.map(&:to_s).sort
       hash
+    end
+
+    def setup_template_params_for_rendering
+      @template_params[:fieldsets] = fieldsets
+      @template_params[:fieldsets_links] = fieldsets_links
     end
 
     def render_template(template = nil)
       execute_with_rescue do
         current_template = template.present? ? template : @template_path
-        @template_params[:fieldsets] = fieldsets
-        @template_params[:fieldsets_links] = fieldsets_links
+        setup_template_params_for_rendering
         Tilt.new(current_template).render(self, @template_params.stringify_keys)
       end
     end

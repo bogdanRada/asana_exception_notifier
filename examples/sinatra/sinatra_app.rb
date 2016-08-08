@@ -38,8 +38,8 @@ class SinatraApp < Sinatra::Base
   get '/background_notification' do
     begin
       1/0
-    rescue Exception => e
-      ExceptionNotifier.notify_exception(e, :data => {:msg => "Cannot divide by zero!"})
+    rescue Exception => exception
+      ExceptionNotifier.notify_exception(exception, :data => {:msg => "Cannot divide by zero!"})
     end
     'Check notification at <a href="http://asana.com">Asana</a>.'
   end

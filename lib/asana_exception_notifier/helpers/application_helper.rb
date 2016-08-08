@@ -69,7 +69,7 @@ module AsanaExceptionNotifier
     #
     # @api public
     def logger
-      @logger ||= ( defined?(Rails) && rails_logger.present? ? rails_logger : ExceptionNotifier.logger )
+      @logger ||= (defined?(Rails) && rails_logger.present? ? rails_logger : ExceptionNotifier.logger)
       @logger = @logger.present? ? @logger : Logger.new(STDOUT)
     end
 
@@ -191,7 +191,6 @@ module AsanaExceptionNotifier
         file_path: path
       }
     end
-
 
     def split_archive(archive, partial_name, segment_size)
       indexes = Zip::File.split(archive, segment_size, true, partial_name)

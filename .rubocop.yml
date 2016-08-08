@@ -1,10 +1,11 @@
 AllCops:
   Exclude:
-    - washout_builder.gemspec
+    - asana_exception_notifier.gemspec
     - bin/**/*
     - Guardfile
     - vendor/**/*
     - examples/**/*
+    - spec/**/*
   TargetRubyVersion: 2.1
 
 ClassLength:
