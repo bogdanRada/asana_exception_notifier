@@ -36,7 +36,7 @@ module AsanaExceptionNotifier
         template_extension: template_extension
       )
     end
-    
+
     # :reek:TooManyStatements: { max_statements: 10 }
     def parse_exception_options
       @template_params ||= {
