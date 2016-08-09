@@ -34,6 +34,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rubyzip', '~> 1.0',  '>= 1.0.0' # will load new rubyzip version
   s.add_runtime_dependency 'zip-zip', '~> 0.3', '>= 0.3' # will load compatibility for old rubyzip API
   s.add_runtime_dependency 'sys-uname', '~> 1.0', '>= 1.0.2'
+  s.add_runtime_dependency 'faraday-conductivity', '~> 0.3', '>= 0.3.1'
 
   s.add_development_dependency 'appraisal', '~> 2.1', '>= 2.1'
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'

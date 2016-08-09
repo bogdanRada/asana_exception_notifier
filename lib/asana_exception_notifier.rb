@@ -22,6 +22,8 @@ require 'exception_notification'
 require 'asana'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
+require "faraday_middleware"
+require "faraday/conductivity"
 
 require 'rack'
 require 'zip'
