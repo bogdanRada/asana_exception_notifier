@@ -79,7 +79,7 @@ module ExceptionNotifier
     def faraday_configuration(config)
       config.configure_faraday do |conn|
         conn.request :url_encoded
-        conn.use :extended_logging, logger: logger
+        conn.response :logger
       end
     end
 
