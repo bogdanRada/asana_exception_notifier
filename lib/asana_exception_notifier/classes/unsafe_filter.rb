@@ -3,9 +3,9 @@ require_relative '../helpers/application_helper'
 module AsanaExceptionNotifier
   # class used to filter unsafe params
   #
-  # @!attribute arguments
+  # @!attribute [r] arguments
   #   @return [#delete] THe arguments that will be filtered
-  # @!attribute unsafe_options
+  # @!attribute [r] unsafe_options
   #   @return [Array<String>, Array<Symbol>] Additional unsafe options that will be used for filtering
   class UnsafeFilter
     include AsanaExceptionNotifier::ApplicationHelper
@@ -16,7 +16,13 @@ module AsanaExceptionNotifier
       old_password email_address email authenticity_token utf8
     ).freeze
 
-    attr_reader :arguments, :unsafe_options
+    # The arguments that will be filtered
+    # @return [#delete] THe arguments that will be filtered
+    attr_reader :arguments
+
+    # Additional unsafe options that will be used for filtering
+    # @return [Array<String>, Array<Symbol>] Additional unsafe options that will be used for filtering
+    attr_reader :unsafe_options
 
     # Initializes the instance with the arguments that will be filtered and the additional unsafe options
     # and starts filtering the arguments

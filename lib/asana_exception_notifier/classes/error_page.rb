@@ -4,21 +4,21 @@ require_relative './unsafe_filter'
 module AsanaExceptionNotifier
   # class used for rendering the template for exception
   #
-  # @!attribute template_path
+  # @!attribute [r] template_path
   #   @return [Hash] The template_path that will be used to render the exception details
-  # @!attribute exception
+  # @!attribute [r] exception
   #   @return [Hash] The exception that will be parsed
-  # @!attribute options
+  # @!attribute [r] options
   #   @return [Hash] Additional options sent by the middleware that will be used to provide additional informatio
-  # @!attribute template_details
+  # @!attribute [r] template_details
   #   @return [Hash] The name and the extension of the template
-  # @!attribute env
+  # @!attribute [r] env
   #   @return [Hash] The environment that was sent by the middleware or the ENV variable
-  # @!attribute request
+  # @!attribute [r] request
   #   @return [Hash] The request that is built based on the environment, in order to provide more information
-  # @!attribute tempfile
+  # @!attribute [r] tempfile
   #   @return [Hash] The archive that will be created and then splitted into multiple archives (if needed )
-  # @!attribute template_params
+  # @!attribute [r] template_params
   #   @return [Hash] The template params that will be sent to the template
   class ErrorPage
     include AsanaExceptionNotifier::ApplicationHelper
@@ -299,7 +299,7 @@ module AsanaExceptionNotifier
 
     # Creates the archive, compresses it , and then removes the temporary file and splits the archive if needed
     # @see #create_tempfile
-    # @see #compress_files
+    # @see #archive_files
     # @see #remove_tempfile
     # @see #split_archive
     #
@@ -307,12 +307,13 @@ module AsanaExceptionNotifier
     def fetch_archives(output = render_template)
       return [] if output.blank?
       filename, path = create_tempfile(output)
-      archive = compress_files(File.dirname(path), filename, [expanded_path(path)])
+      archive = archive_files(File.dirname(path), filename, [expanded_path(path)])
       remove_tempfile(path)
-      split_archive(archive, "part_#{filename}", 1024 * 1024 * 100)
+      split_archive(archive, "part_#{filename}", 1024 * 1024 * 100) # 104_857_600
     end
 
     # If DEBUG_ASANA_TEMPLATE is present this method will only log the path , otherwise will remove the file.
+    # @param [String] path The path of the Tempfile that needs to be removed or logged
     #
     # @return [void]
     def remove_tempfile(path)

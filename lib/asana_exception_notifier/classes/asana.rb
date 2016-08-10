@@ -2,16 +2,22 @@
 require_relative '../helpers/application_helper'
 # class used for connecting to connecting to Asana and creation of task and upload of archives
 #
-# @!attribute initial_options
+# @!attribute [r] initial_options
 #   @return [Hash] THe initial options that the notifier received ( blank values are filtered )
-# @!attribute default_options
+# @!attribute [r] default_options
 #   @return [Hash] The permitted_options that are merged with initial options ( blank values are filtered )
 module ExceptionNotifier
   # module that is used for formatting numbers using metrics
   class AsanaNotifier < ExceptionNotifier::BaseNotifier
     include AsanaExceptionNotifier::ApplicationHelper
-    # the base url to which the API will connect for fetching information about gems
-    attr_reader :initial_options, :default_options
+
+    # The initial options that the middleware was configured with
+    # @return [Hash] THe initial options that the notifier received ( blank values are filtered )
+    attr_reader :initial_options
+
+    # The resulting options after merging with permitted_options and with initial_options
+    # @return [Hash] The permitted_options that are merged with initial options ( blank values are filtered )
+    attr_reader :default_options
 
     # Initializes the instance with the options from the configuration and
     # parses the options
@@ -65,14 +71,14 @@ module ExceptionNotifier
         faraday_configuration(config)
       end
     end
-    
+
     # Returns the asana client that will be used to connect to Asana API
     # @param [Asana::Configuration] config The configuration object that will be used to set the faraday adapter options for connecting to API's
     #
     # @return [void]
     def faraday_configuration(config)
       config.configure_faraday do |conn|
-        conn.request  :url_encoded
+        conn.request :url_encoded
         conn.use :extended_logging, logger: logger
       end
     end
