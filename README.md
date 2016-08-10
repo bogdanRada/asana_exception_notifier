@@ -179,7 +179,7 @@ Array of projects this task is associated with and the section it is in. At task
 
 *Array, optional*
 
-Array of tags associated with this task. This property may be specified on creation using just an array of existing tag IDs. (Default: false).
+Array of tags associated with this task. This property may be specified on creation using just an array of existing tag IDs. (Default: []).
 
 ##### name
 
