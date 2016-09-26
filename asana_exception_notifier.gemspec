@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.required_ruby_version = '>= 2.0'
-  s.required_rubygems_version = '>= 2.5'
+  s.required_rubygems_version = '>= 2.4'
   s.metadata = {
     'source_code' => s.homepage,
     'bug_tracker' => "#{s.homepage}/issues"
@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rubyzip', '~> 1.0',  '>= 1.0.0' # will load new rubyzip version
   s.add_runtime_dependency 'zip-zip', '~> 0.3', '>= 0.3' # will load compatibility for old rubyzip API
   s.add_runtime_dependency 'sys-uname', '~> 1.0', '>= 1.0.2'
-  
+
   s.add_development_dependency 'appraisal', '~> 2.1', '>= 2.1'
   s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
   s.add_development_dependency 'simplecov', '~> 0.11', '>= 0.10'
