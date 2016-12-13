@@ -14,9 +14,9 @@ module AsanaExceptionNotifier
   # provides a easy way of getting the major, minor and tiny
   module VERSION
     # major release version
-    MAJOR = 0
+    MAJOR = 1
     # minor release version
-    MINOR = 8
+    MINOR = 0
     # tiny release version
     TINY = 0
     # prelease version ( set this only if it is a prelease)
