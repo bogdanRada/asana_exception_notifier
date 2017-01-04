@@ -18,10 +18,10 @@ module AsanaExceptionNotifier
     # minor release version
     MINOR = 0
     # tiny release version
-    TINY = 0
+    TINY = 1
     # prelease version ( set this only if it is a prelease)
     PRE = nil
-
+    
     # generates the version string
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
