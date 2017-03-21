@@ -16,4 +16,14 @@ if RUBY_VERSION >= "2.2.0"
     gem "rails", "5.0.0"
     gem 'rails-controller-testing'
   end
+
+  appraise "rails-5.0.2" do
+    gem "rails", "5.0.2"
+    gem 'rails-controller-testing'
+  end
+
+  appraise "rails-5.1.0.rc1" do
+    gem "rails", "5.1.0.rc1"
+    gem 'rails-controller-testing'
+  end
 end
