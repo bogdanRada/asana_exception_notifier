@@ -41,6 +41,7 @@ require 'json'
 require 'tempfile'
 require 'English'
 require 'pathname'
+require 'socket'
 
 %w(initializers helpers request classes).each do |folder_name|
   Gem.find_files("asana_exception_notifier/#{folder_name}/**/*.rb").each { |path| require path }
