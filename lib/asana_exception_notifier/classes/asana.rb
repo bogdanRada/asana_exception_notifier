@@ -79,7 +79,9 @@ module ExceptionNotifier
     def faraday_configuration(config)
       config.configure_faraday do |conn|
         conn.request :url_encoded
+        conn.use :instrumentation
         conn.response :logger
+        conn.response :follow_redirects
       end
     end
 

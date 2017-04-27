@@ -5,6 +5,7 @@ require 'bundler/setup'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/notifications'
 
 require 'exception_notifier'
 require 'exception_notification/rack'
