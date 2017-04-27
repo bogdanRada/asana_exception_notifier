@@ -78,9 +78,7 @@ module ExceptionNotifier
     # @return [void]
     def faraday_configuration(config)
       config.configure_faraday do |conn|
-    #    conn.authorization :Bearer, asana_api_key
         conn.request :url_encoded
-    #    conn.request :oauth2, token_type: 'bearer'
         conn.use :instrumentation
         conn.response :logger
         conn.response :follow_redirects
