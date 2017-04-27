@@ -65,7 +65,7 @@ module ExceptionNotifier
     # @return [Asana::Client] Returns the client used for connecting to Asana API's
     def asana_client
       @asana_client = Asana::Client.new do |config|
-        config.authentication :access_token, asana_api_key
+        config.authentication :oauth2, bearer_token: asana_api_key
         config.debug_mode
         config.faraday_adapter :typhoeus
         faraday_configuration(config)
@@ -78,8 +78,12 @@ module ExceptionNotifier
     # @return [void]
     def faraday_configuration(config)
       config.configure_faraday do |conn|
+    #    conn.authorization :Bearer, asana_api_key
         conn.request :url_encoded
+    #    conn.request :oauth2, token_type: 'bearer'
+        conn.use :instrumentation
         conn.response :logger
+        conn.response :follow_redirects
       end
     end
 

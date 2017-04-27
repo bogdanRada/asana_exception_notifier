@@ -17,4 +17,11 @@ end
 
 require_relative '../lib/generators/asana_exception_notifier/templates/asana_exception_notifier'
 exception = StandardError.new
+
+require_relative './subscribers/metrics'
+
+ActiveSupport::Notifications.subscribe('request.faraday') do |*args|
+  Subscribers::Metrics.new(*args)
+end
+
 ExceptionNotifier.notify_exception(exception, notifiers: :asana)
