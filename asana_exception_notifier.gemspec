@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'typhoeus', '~> 1.1', '>= 1.1.2'
   s.add_runtime_dependency 'exception_notification', '~> 4.2', '>= 4.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
-  s.add_runtime_dependency 'rack', '>= 1.5', '>= 1.5'
+  s.add_runtime_dependency 'rack', '>= 2.0', '>= 2.0'
   s.add_runtime_dependency 'rubyzip', '~> 1.2',  '>= 1.2.0' # will load new rubyzip version
   s.add_runtime_dependency 'zip-zip', '~> 0.3', '>= 0.3' # will load compatibility for old rubyzip API
   s.add_runtime_dependency 'sys-uname', '~> 1.0', '>= 1.0.3'
