@@ -14,6 +14,7 @@ module AsanaExceptionNotifier
     UNSAFE_OPTIONS = %w(
       password password_confirmation new_password new_password_confirmation
       old_password email_address email authenticity_token utf8
+      client_secret code authentication_token access_token refresh_token token
     ).freeze
 
     # The arguments that will be filtered
