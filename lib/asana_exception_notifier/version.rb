@@ -16,9 +16,9 @@ module AsanaExceptionNotifier
     # major release version
     MAJOR = 2
     # minor release version
-    MINOR = 0
+    MINOR = 1
     # tiny release version
-    TINY = 2
+    TINY = 0
     # prelease version ( set this only if it is a prelease)
     PRE = nil
 
