@@ -2,6 +2,6 @@ source "https://rubygems.org"
 
 gem "asana_exception_notifier", path: "../../"
 
-gem "thin", "~> 1.5.1"
-gem "sinatra", "~> 1.4"
+gem "thin", "~> 1.7.2"
+gem "sinatra", "~> 2.0"
 gem "foreman"

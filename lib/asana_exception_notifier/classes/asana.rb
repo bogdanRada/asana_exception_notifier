@@ -203,7 +203,7 @@ module ExceptionNotifier
       @default_options.except(:asana_api_key, :template_path).merge(
         name: task_name_content(error_page),
         notes:  note_content(error_page),
-        workspace: workspace.to_i
+        workspace: workspace
       ).symbolize_keys!
     end
 

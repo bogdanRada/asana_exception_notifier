@@ -26,24 +26,24 @@ Gem::Specification.new do |s|
     'bug_tracker' => "#{s.homepage}/issues"
   }
 
-  s.add_runtime_dependency 'activesupport', '>= 4.0', '>= 4.0'
-  s.add_runtime_dependency 'asana', '~> 0.6', '>= 0.6.0'
-  s.add_runtime_dependency 'typhoeus', '~> 1.1', '>= 1.1.2'
-  s.add_runtime_dependency 'exception_notification', '~> 4.2', '>= 4.2.1'
+  s.add_runtime_dependency 'activesupport', '>= 4.0'
+  s.add_runtime_dependency 'asana','>= 0.6.0'
+  s.add_runtime_dependency 'typhoeus', '>= 1.1.2'
+  s.add_runtime_dependency 'exception_notification', '>= 4.2.1'
   s.add_runtime_dependency 'tilt', '>= 1.4', '< 3'
   s.add_runtime_dependency 'rack',  '>= 1.5', '< 3.0'
-  s.add_runtime_dependency 'rubyzip', '~> 1.2',  '>= 1.2.0' # will load new rubyzip version
+  s.add_runtime_dependency 'rubyzip', '>= 1.2.0' # will load new rubyzip version
   s.add_runtime_dependency 'zip-zip', '~> 0.3', '>= 0.3' # will load compatibility for old rubyzip API
-  s.add_runtime_dependency 'sys-uname', '~> 1.0', '>= 1.0.3'
+  s.add_runtime_dependency 'sys-uname', '>= 1.0.3'
 
-  s.add_development_dependency 'appraisal', '~> 2.1', '>= 2.1'
-  s.add_development_dependency 'rspec', '~> 3.5', '>= 3.5'
-  s.add_development_dependency 'simplecov', '~> 0.12', '>= 0.12'
-  s.add_development_dependency 'simplecov-summary', '~> 0.0.5', '>= 0.0.5'
-  s.add_development_dependency 'coveralls', '~> 0.8', '>= 0.8.17'
+  s.add_development_dependency 'appraisal', '~> 2.2', '>= 2.2'
+  s.add_development_dependency 'rspec', '~> 3.9', '>= 3.9'
+  s.add_development_dependency 'simplecov', '>= 0.16'
+  s.add_development_dependency 'simplecov-summary', '~> 0.0.6', '>= 0.0.6'
   s.add_development_dependency 'rake', '~> 12.0', '>= 12.0'
-  s.add_development_dependency 'yard', '~> 0.8', '>= 0.8.7'
-  s.add_development_dependency 'redcarpet', '~> 3.4', '>= 3.4'
-  s.add_development_dependency 'github-markup', '~> 1.4', '>= 1.4.0'
-  s.add_development_dependency 'inch', '~> 0.7', '>= 0.7.1'
+  s.add_development_dependency 'coveralls','~> 0.8', '>= 0.8.23'
+  s.add_development_dependency "yard", '>= 0.9.20'
+  s.add_development_dependency 'redcarpet', '~> 3.5', '>= 3.5'
+  s.add_development_dependency 'github-markup', '~> 3.0', '>= 3.0'
+  s.add_development_dependency 'inch', '~> 0.8', '>= 0.8'
 end
