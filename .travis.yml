@@ -3,12 +3,6 @@ language: ruby
 cache: bundler
 
 bundler_args: --no-deployment --binstubs=./bin
-￼ Rada Bogdan
- #190.1 errored
- Ran for 40 sec
- 8 months ago
-￼ Restart job
- AMD64
 
 before_install:
   - "echo 'gem: --no-ri --no-rdoc' > ~/.gemrc"
